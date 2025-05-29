@@ -51,7 +51,7 @@ export class Lyra extends Phaser.GameObjects.Sprite {
     }
 
     update() {
-        const speed = 3;
+        const speed = Lyra.DEFAULT_SPEED;
         let moving = false;
 
         if (this.keys.up.isDown) {
