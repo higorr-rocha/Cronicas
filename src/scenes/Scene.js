@@ -10,7 +10,10 @@ export class Scene extends Phaser.Scene {
         this.add.image(640, 360, 'background');
 
         // Adiciona a personagem na cena
-        this.lyra = new Lyra(this, 212, 490);
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+
+        this.lyra = new Lyra(this, centerX - 428, centerY + 125);
     }
 
     update() {

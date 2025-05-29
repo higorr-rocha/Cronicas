@@ -1,4 +1,6 @@
 export class Lyra extends Phaser.GameObjects.Sprite {
+    static DEFAULT_SPEED = 3; // Valor padrão de velocidade
+
     constructor(scene, x, y) {
         super(scene, x, y, 'lyra');
         scene.add.existing(this);
@@ -75,6 +77,10 @@ export class Lyra extends Phaser.GameObjects.Sprite {
             this.lastDirection = 'right';
             moving = true;
         }
+
+        // Limita a posição dentro dos limites da câmera
+        this.x = Phaser.Math.Clamp(this.x, 0, this.scene.cameras.main.width);
+        this.y = Phaser.Math.Clamp(this.y, 0, this.scene.cameras.main.height);
 
         if (!moving) {
             this.anims.stop();

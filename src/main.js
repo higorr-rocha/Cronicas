@@ -3,7 +3,7 @@ import { Scene } from './scenes/Scene.js';
 
 const config = {
     type: Phaser.AUTO,
-    title: 'Overlord Rising',
+    title: 'Cronicas do Khronóvoros',
     description: '',
     parent: 'game-container',
     width: 1280,
