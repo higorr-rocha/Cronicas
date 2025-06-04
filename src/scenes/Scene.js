@@ -31,7 +31,7 @@ export class Scene extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
         // Aplica zoom (opcional)
-        this.cameras.main.setZoom(2);
+        this.cameras.main.setZoom(1);
     }
 
     update() {
