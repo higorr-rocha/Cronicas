@@ -1,23 +1,33 @@
+# jogo
 
-# Crônicas do Tempo Perdido  
+This template should help get you started developing with Vue 3 in Vite.
 
-Jogo web de aventura e exploração em pixel art, desenvolvido por alunos da graduação em Engenharia de Software como parte da avaliação bimestral da disciplina de Front-End.  
+## Recommended IDE Setup
 
-## 🎮 Sobre o Jogo  
-- **Gênero:** Aventura narrativa + exploração não-linear.  
-- **Premissa:** Em um mundo pós-apocalíptico dividido em Três Anéis, a arqueóloga Lyra busca um artefato ancestral enquanto enfrenta facções em conflito.  
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
+## Type Support for `.vue` Imports in TS
 
-## ✨ Autores
+TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
 
-- [@higorr-rocha](https://www.github.com/higorr-rocha)
-- [@FelipeMatrone](https://www.github.com/FelipeMatrone)
-- [@GuiYamaguchi](https://www.github.com/GuiYamaguchi)
-- [@LuisFelipe](https://www.github.com/LuisFelipe-ESOFT)
+## Customize configuration
 
+See [Vite Configuration Reference](https://vite.dev/config/).
 
-## 📝 Licença
+## Project Setup
 
-- Código-fonte: [MIT License](LICENSE).
-- Assets (arte, sons): [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+```sh
+npm install
+```
 
+### Compile and Hot-Reload for Development
+
+```sh
+npm run dev
+```
+
+### Type-Check, Compile and Minify for Production
+
+```sh
+npm run build
+```
