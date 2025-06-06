@@ -1,30 +1,61 @@
+import temploVerdeSrc from '../assets/templo_verde.png';
+import temploVermelhoSrc from '../assets/templo_vermelho.png';
+import temploAzulSrc from '../assets/templo_azul.png';
+
 export function useColisoes() {
   const templos = [
     {
-      x: 65, y: 100, largura: 125, altura: 215,
-      porta: { x: 70, y: 305, largura: 115, altura: 10 },
+      id: 'templo_verde', // ID único para o templo da esquerda
+      x: 160, y: 184, largura: 294, altura: 380,
+      porta: { x: 160, y: 560, largura: 294, altura: 10 },
+      interiorImageSrc: temploVerdeSrc,
+      spawnPoint: { x: 745, y: 680 }, // Ponto de spawn para este interior
+      interior: {
+        paredes: [
+          // Exemplo de paredes para o templo verde. Adicione quantas precisar.
+          { x: 0, y: 240, largura: 20, altura: 275 }, // Parede esquerda
+          { x: 0, y: 240, largura: 390, altura: 60 }, // Parede esquerda
+          { x: 0, y: 440, largura: 390, altura: 60 }, // Parede esquerda
+          { x: 1125, y: 240, largura: 390, altura: 60 }, // Parede direita
+          { x: 1125, y: 440, largura: 390, altura: 60 }, // Parede direita
+          { x: 1519, y: 240, largura: 20, altura: 275 }, // Parede direita
+          { x: 535, y: 0, largura: 445, altura: 60 }, // Parede de cima
+          { x: 535, y: 0, largura: 18, altura: 205 }, // Parede de cima esquerda
+          { x: 965, y: 0, largura: 18, altura: 205 }, // Parede de cima direita
+          { x: 395, y: 200, largura: 325, altura: 93 }, // Parede esquerda
+          { x: 800, y: 200, largura: 325, altura: 93 }, // Parede esquerda
+          { x: 395, y: 460, largura: 325, altura: 95 }, // Parede esquerda
+          { x: 800, y: 460, largura: 325, altura: 95 }, // Parede esquerda
+          { x: 535, y: 470, largura: 18, altura: 395 }, // Parede de baixo esquerda
+          { x: 965, y: 470, largura: 18, altura: 395 }, // Parede de baixo esquerda
+          { x: 550, y: 770, largura: 170, altura: 90 }, // Parede de baixo
+          { x: 800, y: 770, largura: 165, altura: 90 }, // Parede de baixo
+
+        ],
+        saida: { x: 720, y: 770, largura: 80, altura: 10 } // Porta de saída
+      }
     },
     {
-      x: 265, y: 10, largura: 125, altura: 215,
-      porta: { x: 270, y: 215, largura: 120, altura: 10 },
+      id: 'templo_vermelho', // ID único para o templo do meio
+      x: 641, y: 20, largura: 294, altura: 380,
+      porta: { x: 641, y: 400, largura: 294, altura: 10 },
+      interiorImageSrc: temploVermelhoSrc,
+      spawnPoint: { x: 745, y: 680 },
+      // INTERIOR DO TEMPLO VERMELHO
     },
     {
-      x: 475, y: 90, largura: 125, altura: 215,
-      porta: { x: 480, y: 295, largura: 120, altura: 10 },
+      id: 'templo_azul', // ID único para o templo da direita
+      x: 1145, y: 161, largura: 294, altura: 380,
+      porta: { x: 1145, y: 535, largura: 294, altura: 10 },
+      interiorImageSrc: temploAzulSrc,
+      spawnPoint: { x: 745, y: 700 },
+      // INTERIOR DO TEMPLO AZUL
     },
   ];
 
   const aviao = {
-    x: 145,
-    y: 400,
-    largura: 43,
-    altura: 50,
-    porta: {
-      x: 145,
-      y: 410,
-      largura: 8,
-      altura: 30,
-    },
+    x: 350, y: 725, largura: 99, altura: 83,
+    porta: { x: 350, y: 725, largura: 8, altura: 83, },
   };
 
   function retangulosColidem(r1, r2) {

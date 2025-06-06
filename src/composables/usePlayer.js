@@ -2,8 +2,8 @@ import { ref } from 'vue';
 
 export function usePlayer() {
   const player = ref({
-    x: 250,
-    y: 240,
+    x: 460,
+    y: 725,
     width: 32,
     height: 64,
     hitbox: {
@@ -17,7 +17,7 @@ export function usePlayer() {
     frameCount: 4,
     frameTick: 0,
     frameTickLimit: 10,
-    direction: 1,
+    direction: 1, // 0: Cima, 1: Baixo, 2: Esquerda, 3: Direita
   });
 
   const keys = ref({
@@ -27,12 +27,6 @@ export function usePlayer() {
     ArrowRight: false,
   });
 
-  // Função para resetar frame quando parado
-  function resetFrame() {
-    player.value.frameIndex = 0;
-  }
-
-  // Função para avançar frame de animação
   function updateFrame() {
     player.value.frameTick++;
     if (player.value.frameTick >= player.value.frameTickLimit) {
@@ -41,10 +35,55 @@ export function usePlayer() {
     }
   }
 
+  function resetFrame() {
+    player.value.frameIndex = 0;
+  }
+
+  /**
+   * NOVA FUNÇÃO DE MOVIMENTO GLOBAL
+   * Esta função não verifica mais colisões. Ela apenas calcula a próxima posição
+   * potencial com base nas teclas, atualiza a direção para a animação e o frame.
+   * @param {object} keys - O estado atual das teclas.
+   * @returns {{nextX: number, nextY: number}} - As coordenadas da próxima posição potencial.
+   */
+  function moverJogador(keys) {
+    let movendo = false;
+    let nextX = player.value.x;
+    let nextY = player.value.y;
+
+    // Lógica de movimento e direção da animação
+    if (keys.ArrowUp) {
+      nextY -= player.value.speed;
+      player.value.direction = 0; // Direção para CIMA
+      movendo = true;
+    } else if (keys.ArrowDown) {
+      nextY += player.value.speed;
+      player.value.direction = 1; // Direção para BAIXO
+      movendo = true;
+    } else if (keys.ArrowLeft) {
+      nextX -= player.value.speed;
+      player.value.direction = 2; // Direção para ESQUERDA
+      movendo = true;
+    } else if (keys.ArrowRight) {
+      nextX += player.value.speed;
+      player.value.direction = 3; // Direção para DIREITA
+      movendo = true;
+    }
+
+    // Atualiza a animação
+    if (movendo) {
+      updateFrame();
+    } else {
+      resetFrame();
+    }
+
+    // Retorna a posição futura para que o Game.vue possa validar
+    return { nextX, nextY };
+  }
+
   return {
     player,
     keys,
-    resetFrame,
-    updateFrame,
+    moverJogador,
   };
 }

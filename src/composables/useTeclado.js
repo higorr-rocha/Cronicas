@@ -1,8 +1,7 @@
-import { onMounted, onUnmounted, ref } from 'vue';
+// Cronicas/src/composables/useTeclado.js
+import { onMounted, onUnmounted } from 'vue';
 
 export function useTeclado(keys, onInteracaoTecla) {
-  const teclasPermitidas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'];
-
   function mapearTecla(tecla) {
     switch (tecla.toLowerCase()) {
       case 'w': return 'ArrowUp';
@@ -17,10 +16,6 @@ export function useTeclado(keys, onInteracaoTecla) {
     const teclaMapeada = mapearTecla(e.key);
     if (keys.value.hasOwnProperty(teclaMapeada)) {
       keys.value[teclaMapeada] = true;
-    }
-    // Adicione no useTeclado.js
-    if (e.key === 'c') {
-      showCollisionBoxes.value = !showCollisionBoxes.value;
     }
 
     if (onInteracaoTecla) onInteracaoTecla(e);

@@ -13,10 +13,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import mapSrc from '../assets/templos.png';
 import playerSrc from '../assets/player_spritesheet.png';
-import mapInteriorTemplo from '../assets/templo_interior.png';
 import { useColisoes } from '../composables/useColisoes.js';
 import { usePlayer } from '../composables/usePlayer.js';
 import { useTeclado } from '../composables/useTeclado.js';
+import { useDialog } from '../composables/useDialog.js';
 
 // Configurações do jogo
 const GAME_WIDTH = 1280;
@@ -32,18 +32,29 @@ const gameHeight = ref(GAME_HEIGHT);
 // Imagens
 const mapImage = new Image();
 mapImage.src = mapSrc;
-const mapInteriorImage = new Image();
-mapInteriorImage.src = mapInteriorTemplo;
+const interiorMapImages = {};
 const playerImage = new Image();
 playerImage.src = playerSrc;
 
 // Sistemas
-const { verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta, aviao } = useColisoes();
-const { player, keys, resetFrame, updateFrame } = usePlayer();
-const dialog = ref({ visible: false, message: '', currentTemplo: null });
+const { verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta, aviao, retangulosColidem } = useColisoes();
+const { player, keys, moverJogador } = usePlayer();
 const currentMap = ref('exterior');
+const temploAtual = ref(null);
+const { dialog, abrirDialogo, processarTecla: processarTeclaDialogo } = useDialog(player, currentMap, aviao, temploAtual);
 let context;
 let animationFrameId = null;
+
+const showCollisionBoxes = ref(false); // Variável para controlar a exibição
+function handleKeyPress(e) {
+  // Passa o evento para o processador de diálogos
+  processarTeclaDialogo(e); 
+
+  // Adiciona a nossa nova lógica para a tecla 'c'
+  if (e.key.toLowerCase() === 'c') {
+    showCollisionBoxes.value = !showCollisionBoxes.value;
+  }
+}
 
 // Configuração do display
 function setupDisplay() {
@@ -93,119 +104,68 @@ function rectFromPlayer(newX, newY) {
   };
 }
 
-function verificaPortaSaidaInterior(playerRect) {
-  const portaSaida = { x: 280, y: 410, largura: 80, altura: 40 };
-  const colidiu =
-    playerRect.x < portaSaida.x + portaSaida.largura &&
-    playerRect.x + playerRect.largura > portaSaida.x &&
-    playerRect.y < portaSaida.y + portaSaida.altura &&
-    playerRect.y + playerRect.altura > portaSaida.y;
-  return colidiu ? portaSaida : null;
-}
+useTeclado(keys, handleKeyPress);
 
-function processarTecla(e) {
-  if (!dialog.value.visible) return;
-
-  if (e.key === 'e' || e.key === 'E') {
-    if (dialog.value.currentTemplo === aviao) {
-      alert('Você entrou no avião!');
-    } else if (dialog.value.currentTemplo === 'saida') {
-      currentMap.value = 'exterior';
-      player.value.x = 300;
-      player.value.y = 350;
-    } else {
-      currentMap.value = 'interior';
-      player.value.x = 100;
-      player.value.y = 100;
-    }
-    dialog.value.visible = false;
-  } else if (e.key === 'Escape') {
-    dialog.value.visible = false;
-  }
-}
-
-useTeclado(keys, processarTecla);
+// Em Cronicas/src/components/Game.vue
 
 function update() {
-  if (dialog.value.visible) return;
+  if (!dialog.value.visible) {
+    const { nextX, nextY } = moverJogador(keys.value);
+    const boundedX = Math.max(0, Math.min(gameWidth.value - player.value.width, nextX));
+    const boundedY = Math.max(0, Math.min(gameHeight.value - player.value.height, nextY));
+    const playerRect = rectFromPlayer(boundedX, boundedY);
 
-  let moving = false;
-  let newX = player.value.x;
-  let newY = player.value.y;
-  let newDirection = player.value.direction;
+    if (currentMap.value === 'exterior') {
+      const temploComPorta = verificaColisaoPorta(playerRect);
+      if (temploComPorta) {
+        abrirDialogo(temploComPorta, 'Deseja entrar?\nE - Sim   ESC - Não');
+      } else {
+        const colidiuComBarreira = verificaColisaoTemplos(playerRect) || verificaColisaoAviao(playerRect);
+        if (!colidiuComBarreira) {
+          player.value.x = boundedX;
+          player.value.y = boundedY;
+        }
+      }
+    } else if (currentMap.value.startsWith('templo_')) {
+      // NOVA LÓGICA PARA INTERIORES
+      const { templos } = useColisoes();
+      const temploAtual = templos.find(t => t.id === currentMap.value);
+      
+      if (temploAtual && temploAtual.interior) {
+        const { paredes, saida } = temploAtual.interior;
 
-  if (keys.value.ArrowLeft) {
-    newX -= player.value.speed;
-    newDirection = 2;
-    moving = true;
-  }
-  if (keys.value.ArrowRight) {
-    newX += player.value.speed;
-    newDirection = 3;
-    moving = true;
-  }
-  if (keys.value.ArrowUp) {
-    newY -= player.value.speed;
-    newDirection = 0;
-    moving = true;
-  }
-  if (keys.value.ArrowDown) {
-    newY += player.value.speed;
-    newDirection = 1;
-    moving = true;
-  }
-
-  // Limites do jogo
-  newX = Math.max(0, Math.min(GAME_WIDTH - player.value.width, newX));
-  newY = Math.max(0, Math.min(GAME_HEIGHT - player.value.height, newY));
-
-  const playerRect = rectFromPlayer(newX, newY);
-
-  if (currentMap.value === 'interior') {
-    const portaSaida = verificaPortaSaidaInterior(playerRect);
-    if (portaSaida && !dialog.value.visible) {
-      dialog.value.visible = true;
-      dialog.value.message = 'Deseja sair?\nE - Sim   ESC - Não';
-      dialog.value.currentTemplo = 'saida';
+        // Verifica colisão com a porta de saída
+        if (retangulosColidem(playerRect, saida)) {
+          abrirDialogo('saida', 'Deseja sair?\nE - Sim   ESC - Não');
+        } else {
+          // Verifica colisão com as paredes do interior
+          const colidiuComParede = paredes.some(p => retangulosColidem(playerRect, p));
+          if (!colidiuComParede) {
+            player.value.x = boundedX;
+            player.value.y = boundedY;
+          }
+        }
+      }
     }
-
-    if (moving) {
-      player.value.x = newX;
-      player.value.y = newY;
-      player.value.direction = newDirection;
-      updateFrame();
-    } else {
-      resetFrame();
-    }
-    return;
-  }
-
-  const collidedTemplo = verificaColisaoTemplos(playerRect);
-  const collidedAviao = verificaColisaoAviao(playerRect);
-  const temploComPorta = verificaColisaoPorta(playerRect);
-
-  if (temploComPorta && !dialog.value.visible) {
-    dialog.value.visible = true;
-    dialog.value.message = 'Deseja entrar?\nE - Sim   ESC - Não';
-    dialog.value.currentTemplo = temploComPorta;
-  }
-
-  if (!collidedTemplo && !collidedAviao && moving) {
-    player.value.x = newX;
-    player.value.y = newY;
-    player.value.direction = newDirection;
-    updateFrame();
-  } else if (!moving) {
-    resetFrame();
   }
 }
 
 function draw() {
   context.clearRect(0, 0, gameWidth.value, gameHeight.value);
 
+  let currentMapImage;
+
+  if (currentMap.value === 'exterior') {
+    currentMapImage = mapImage;
+  } else {
+    // Procura a imagem do interior no nosso objeto
+    currentMapImage = interiorMapImages[currentMap.value];
+  }
+
   // Desenha o mapa
-  const currentMapImage = currentMap.value === 'interior' ? mapInteriorImage : mapImage;
-  context.drawImage(currentMapImage, 0, 0, gameWidth.value, gameHeight.value);
+  if (currentMapImage && currentMapImage.complete) {
+    context.drawImage(currentMapImage, 0, 0, gameWidth.value, gameHeight.value);
+  }
 
   // Desenha o jogador
   const frameWidth = playerImage.width / player.value.frameCount;
@@ -222,6 +182,36 @@ function draw() {
     player.value.width,
     player.value.height
   );
+
+  if (showCollisionBoxes.value) {
+    const { templos, aviao } = useColisoes();
+    context.lineWidth = 2;
+
+    if (currentMap.value === 'exterior') {
+      // Desenha colisões do mapa exterior
+      context.strokeStyle = 'green';
+      templos.forEach(t => context.strokeRect(t.x, t.y, t.largura, t.altura));
+      context.strokeRect(aviao.x, aviao.y, aviao.largura, aviao.altura);
+
+      context.strokeStyle = 'yellow';
+      templos.forEach(t => t.porta && context.strokeRect(t.porta.x, t.porta.y, t.porta.largura, t.porta.altura));
+      aviao.porta && context.strokeRect(aviao.porta.x, aviao.porta.y, aviao.porta.largura, aviao.porta.altura);
+
+    } else if (currentMap.value.startsWith('templo_')) {
+      // NOVA LÓGICA PARA DESENHAR COLISÕES DO INTERIOR
+      const temploAtual = templos.find(t => t.id === currentMap.value);
+      if (temploAtual && temploAtual.interior) {
+        // Desenha as paredes em verde
+        context.strokeStyle = 'green';
+        temploAtual.interior.paredes.forEach(p => context.strokeRect(p.x, p.y, p.largura, p.altura));
+      
+        // Desenha a porta de saída em amarelo
+        context.strokeStyle = 'yellow';
+        const { saida } = temploAtual.interior;
+        context.strokeRect(saida.x, saida.y, saida.largura, saida.altura);
+      }
+    }
+  }
 }
 
 function gameLoop() {
@@ -233,13 +223,22 @@ function gameLoop() {
 onMounted(() => {
   context = canvas.value.getContext('2d');
   const cleanupDisplay = setupDisplay();
+  const { templos } = useColisoes();
 
-  // Carrega assets
-  Promise.all([
+  // Cria uma lista de promessas para carregar TODAS as imagens
+  const imagePromises = [
     new Promise(resolve => { mapImage.onload = resolve; }),
-    new Promise(resolve => { playerImage.onload = resolve; }),
-    new Promise(resolve => { mapInteriorImage.onload = resolve; })
-  ]).then(() => {
+    new Promise(resolve => { playerImage.onload = resolve; })
+  ];
+
+  templos.forEach(templo => {
+    const img = new Image();
+    img.src = templo.interiorImageSrc;
+    interiorMapImages[templo.id] = img; // Armazena a imagem no nosso objeto
+    imagePromises.push(new Promise(resolve => { img.onload = resolve; }));
+  });
+
+  Promise.all(imagePromises).then(() => {
     gameLoop();
   });
 
