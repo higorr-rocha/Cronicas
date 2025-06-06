@@ -14,8 +14,8 @@ defineProps({
 <style scoped>
 .dialog-box {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
+  bottom: 200px;
+  left: 100%;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.85);
   color: white;

@@ -1,87 +1,89 @@
 <template>
-  <div ref="gameContainer" style="position:relative; width:100vw; height:100vh; overflow:hidden;">
+  <div ref="gameContainer" class="game-container">
     <canvas
       ref="canvas"
-      :width="canvasWidth"
-      :height="canvasHeight"
-      style="display:block; width:100vw; height:100vh; image-rendering: pixelated; background: #000;"
-      @click="enterFullscreen"
+      class="game-canvas"
+      :width="gameWidth"
+      :height="gameHeight"
     ></canvas>
-
-    <!-- Caixa de mensagem do jogo -->
-    <!-- <div
-      v-if="dialog.visible"
-      style="
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(0, 0, 0, 0.75);
-        color: white;
-        padding: 16px 24px;
-        border-radius: 10px;
-        font-family: sans-serif;
-        font-size: 1.1rem;
-        white-space: pre-line;
-        pointer-events: none;
-        z-index: 10;
-        text-align: center;
-      "
-    >
-      {{ dialog.message }}
-    </div> -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import mapSrc from '../assets/templos.png';
 import playerSrc from '../assets/player_spritesheet.png';
 import mapInteriorTemplo from '../assets/templo_interior.png';
-
 import { useColisoes } from '../composables/useColisoes.js';
 import { usePlayer } from '../composables/usePlayer.js';
 import { useTeclado } from '../composables/useTeclado.js';
 
+// Configurações do jogo
+const GAME_WIDTH = 1280;
+const GAME_HEIGHT = 720;
+const ASPECT_RATIO = GAME_WIDTH / GAME_HEIGHT;
+
+// Refs
 const gameContainer = ref(null);
 const canvas = ref(null);
-const canvasWidth = ref(window.innerWidth);
-const canvasHeight = ref(window.innerHeight);
+const gameWidth = ref(GAME_WIDTH);
+const gameHeight = ref(GAME_HEIGHT);
 
-let context;
-
+// Imagens
 const mapImage = new Image();
 mapImage.src = mapSrc;
-
 const mapInteriorImage = new Image();
 mapInteriorImage.src = mapInteriorTemplo;
-
 const playerImage = new Image();
 playerImage.src = playerSrc;
 
+// Sistemas
 const { verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta, aviao } = useColisoes();
 const { player, keys, resetFrame, updateFrame } = usePlayer();
 const dialog = ref({ visible: false, message: '', currentTemplo: null });
-const currentMap = ref('exterior'); // 'exterior' ou 'interior'
+const currentMap = ref('exterior');
+let context;
+let animationFrameId = null;
 
-// FULLSCREEN: faz o container entrar em fullscreen
-function enterFullscreen() {
-  if (gameContainer.value.requestFullscreen) {
-    gameContainer.value.requestFullscreen();
-  }
-  resizeCanvasToFullscreen();
+// Configuração do display
+function setupDisplay() {
+  const updateSize = () => {
+    if (!gameContainer.value || !canvas.value) return;
+
+    const containerWidth = gameContainer.value.clientWidth;
+    const containerHeight = gameContainer.value.clientHeight;
+
+    // Mantém o aspect ratio do jogo
+    let newWidth = containerWidth;
+    let newHeight = Math.round(newWidth / ASPECT_RATIO);
+
+    if (newHeight > containerHeight) {
+      newHeight = containerHeight;
+      newWidth = Math.round(newHeight * ASPECT_RATIO);
+    }
+
+    gameWidth.value = newWidth;
+    gameHeight.value = newHeight;
+
+    // Atualiza o canvas
+    canvas.value.width = newWidth;
+    canvas.value.height = newHeight;
+    canvas.value.style.width = `${newWidth}px`;
+    canvas.value.style.height = `${newHeight}px`;
+  };
+
+  // Event listeners
+  window.addEventListener('resize', updateSize);
+  document.addEventListener('fullscreenchange', updateSize);
+  updateSize();
+
+  return () => {
+    window.removeEventListener('resize', updateSize);
+    document.removeEventListener('fullscreenchange', updateSize);
+  };
 }
 
-// Atualiza o tamanho do canvas para fullscreen
-function resizeCanvasToFullscreen() {
-  if (!canvas.value || !gameContainer.value) return;
-  canvasWidth.value = gameContainer.value.clientWidth;
-  canvasHeight.value = gameContainer.value.clientHeight;
-  canvas.value.width = canvasWidth.value;
-  canvas.value.height = canvasHeight.value;
-}
-
-// Cria retângulo do player para checar colisões
+// Funções do jogo (mantidas conforme seu código original)
 function rectFromPlayer(newX, newY) {
   return {
     x: newX + player.value.hitbox.offsetX,
@@ -91,9 +93,8 @@ function rectFromPlayer(newX, newY) {
   };
 }
 
-// Verifica porta de saída do templo (em coordenadas definidas)
 function verificaPortaSaidaInterior(playerRect) {
-  const portaSaida = { x: 280, y: 400, largura: 80, altura: 40 };
+  const portaSaida = { x: 280, y: 410, largura: 80, altura: 40 };
   const colidiu =
     playerRect.x < portaSaida.x + portaSaida.largura &&
     playerRect.x + playerRect.largura > portaSaida.x &&
@@ -102,7 +103,6 @@ function verificaPortaSaidaInterior(playerRect) {
   return colidiu ? portaSaida : null;
 }
 
-// Processa tecla 'E' ou 'Escape'
 function processarTecla(e) {
   if (!dialog.value.visible) return;
 
@@ -155,8 +155,9 @@ function update() {
     moving = true;
   }
 
-  newX = Math.max(0, Math.min(canvasWidth.value - player.value.width, newX));
-  newY = Math.max(0, Math.min(canvasHeight.value - player.value.height, newY));
+  // Limites do jogo
+  newX = Math.max(0, Math.min(GAME_WIDTH - player.value.width, newX));
+  newY = Math.max(0, Math.min(GAME_HEIGHT - player.value.height, newY));
 
   const playerRect = rectFromPlayer(newX, newY);
 
@@ -179,17 +180,13 @@ function update() {
     return;
   }
 
-  const temploComPorta = verificaColisaoPorta(playerRect, canvasWidth.value, canvasHeight.value);
-  const collidedTemplo = verificaColisaoTemplos(playerRect, canvasWidth.value, canvasHeight.value);
-  const collidedAviao = verificaColisaoAviao(playerRect, canvasWidth.value, canvasHeight.value);
+  const collidedTemplo = verificaColisaoTemplos(playerRect);
+  const collidedAviao = verificaColisaoAviao(playerRect);
+  const temploComPorta = verificaColisaoPorta(playerRect);
 
   if (temploComPorta && !dialog.value.visible) {
     dialog.value.visible = true;
-    if (temploComPorta === aviao) {
-      dialog.value.message = 'Deseja embarcar no avião?\nE - Sim   ESC - Não';
-    } else {
-      dialog.value.message = 'Deseja entrar?\nE - Sim   ESC - Não';
-    }
+    dialog.value.message = 'Deseja entrar?\nE - Sim   ESC - Não';
     dialog.value.currentTemplo = temploComPorta;
   }
 
@@ -204,11 +201,13 @@ function update() {
 }
 
 function draw() {
-  context.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
+  context.clearRect(0, 0, gameWidth.value, gameHeight.value);
 
+  // Desenha o mapa
   const currentMapImage = currentMap.value === 'interior' ? mapInteriorImage : mapImage;
-  context.drawImage(currentMapImage, 0, 0, canvasWidth.value, canvasHeight.value);
+  context.drawImage(currentMapImage, 0, 0, gameWidth.value, gameHeight.value);
 
+  // Desenha o jogador
   const frameWidth = playerImage.width / player.value.frameCount;
   const frameHeight = playerImage.height / 4;
 
@@ -225,33 +224,50 @@ function draw() {
   );
 }
 
-function loop() {
+function gameLoop() {
   update();
   draw();
-  requestAnimationFrame(loop);
+  animationFrameId = requestAnimationFrame(gameLoop);
 }
-
-let mapLoaded = false;
-let playerLoaded = false;
 
 onMounted(() => {
   context = canvas.value.getContext('2d');
+  const cleanupDisplay = setupDisplay();
 
-  mapImage.onload = () => {
-    mapLoaded = true;
-    if (playerLoaded) loop();
-  };
+  // Carrega assets
+  Promise.all([
+    new Promise(resolve => { mapImage.onload = resolve; }),
+    new Promise(resolve => { playerImage.onload = resolve; }),
+    new Promise(resolve => { mapInteriorImage.onload = resolve; })
+  ]).then(() => {
+    gameLoop();
+  });
 
-  playerImage.onload = () => {
-    playerLoaded = true;
-    if (mapLoaded) loop();
-  };
-
-  window.addEventListener('resize', resizeCanvasToFullscreen);
-  document.addEventListener('fullscreenchange', resizeCanvasToFullscreen);
-
-  resizeCanvasToFullscreen();
+  onUnmounted(() => {
+    cancelAnimationFrame(animationFrameId);
+    cleanupDisplay();
+  });
 });
 
 defineExpose({ dialog });
 </script>
+
+<style scoped>
+.game-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-canvas {
+  image-rendering: pixelated;
+  background-color: #000;
+}
+</style>

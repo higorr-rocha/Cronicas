@@ -14,5 +14,7 @@ import GameCanvas from './components/Game.vue';
 import DialogBox from './components/Dialog.vue';
 
 const gameCanvas = ref(null);
-
 </script>
+
+<style scoped>
+</style>

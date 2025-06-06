@@ -18,6 +18,10 @@ export function useTeclado(keys, onInteracaoTecla) {
     if (keys.value.hasOwnProperty(teclaMapeada)) {
       keys.value[teclaMapeada] = true;
     }
+    // Adicione no useTeclado.js
+    if (e.key === 'c') {
+      showCollisionBoxes.value = !showCollisionBoxes.value;
+    }
 
     if (onInteracaoTecla) onInteracaoTecla(e);
   }

@@ -1,9 +1,5 @@
-const BASE_WIDTH = 800;
-const BASE_HEIGHT = 600;
-
 export function useColisoes() {
-  // Dados originais em coordenadas base
-  const templosBase = [
+  const templos = [
     {
       x: 65, y: 100, largura: 125, altura: 215,
       porta: { x: 70, y: 305, largura: 115, altura: 10 },
@@ -18,7 +14,7 @@ export function useColisoes() {
     },
   ];
 
-  const aviaoBase = {
+  const aviao = {
     x: 145,
     y: 400,
     largura: 43,
@@ -31,30 +27,6 @@ export function useColisoes() {
     },
   };
 
-  // Escala objeto com base nas dimensões do canvas atual
-  function escalarObjeto(obj, scaleX, scaleY) {
-    return {
-      x: obj.x * scaleX,
-      y: obj.y * scaleY,
-      largura: obj.largura * scaleX,
-      altura: obj.altura * scaleY,
-    };
-  }
-
-  function escalarTemplos(scaleX, scaleY) {
-    return templosBase.map(t => ({
-      ...escalarObjeto(t, scaleX, scaleY),
-      porta: escalarObjeto(t.porta, scaleX, scaleY),
-    }));
-  }
-
-  function escalarAviao(scaleX, scaleY) {
-    return {
-      ...escalarObjeto(aviaoBase, scaleX, scaleY),
-      porta: escalarObjeto(aviaoBase.porta, scaleX, scaleY),
-    };
-  }
-
   function retangulosColidem(r1, r2) {
     return !(
       r1.x + r1.largura < r2.x ||
@@ -64,27 +36,15 @@ export function useColisoes() {
     );
   }
 
-  // As funções abaixo agora recebem as dimensões do canvas
-  function verificaColisaoTemplos(retangulo, canvasWidth, canvasHeight) {
-    const scaleX = canvasWidth / BASE_WIDTH;
-    const scaleY = canvasHeight / BASE_HEIGHT;
-    const templos = escalarTemplos(scaleX, scaleY);
+  function verificaColisaoTemplos(retangulo) {
     return templos.some(templo => retangulosColidem(retangulo, templo));
   }
 
- function verificaColisaoAviao(retangulo, canvasWidth, canvasHeight) {
-  const scaleX = canvasWidth / BASE_WIDTH;
-  const scaleY = canvasHeight / BASE_HEIGHT;
-  const aviaoEscalado = escalarAviao(scaleX, scaleY);
-  return retangulosColidem(retangulo, aviaoEscalado) ? aviaoBase : null;
-}
+  function verificaColisaoAviao(retangulo) {
+    return retangulosColidem(retangulo, aviao);
+  }
 
-  function verificaColisaoPorta(retangulo, canvasWidth, canvasHeight) {
-    const scaleX = canvasWidth / BASE_WIDTH;
-    const scaleY = canvasHeight / BASE_HEIGHT;
-    const templos = escalarTemplos(scaleX, scaleY);
-    const aviao = escalarAviao(scaleX, scaleY);
-
+  function verificaColisaoPorta(retangulo) {
     const temploComPorta = templos.find(templo => retangulosColidem(retangulo, templo.porta));
     if (temploComPorta) return temploComPorta;
 
@@ -94,9 +54,11 @@ export function useColisoes() {
   }
 
   return {
+    templos,
+    aviao,
+    retangulosColidem,
     verificaColisaoTemplos,
     verificaColisaoAviao,
     verificaColisaoPorta,
-    aviao: aviaoBase, // continua base para uso em lógica
   };
 }
