@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "howler": "^2.2.4",
     "vue": "^3.5.16"
   },
   "devDependencies": {

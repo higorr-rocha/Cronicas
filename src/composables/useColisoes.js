@@ -1,18 +1,17 @@
-import temploVerdeSrc from '../assets/templo_verde.png';
-import temploVermelhoSrc from '../assets/templo_vermelho.png';
-import temploAzulSrc from '../assets/templo_azul.png';
+import temploVerdeSrc from '../assets/Mapas/templo_verde.png';
+import temploVermelhoSrc from '../assets/Mapas/templo_vermelho.png';
+import temploAzulSrc from '../assets/Mapas/templo_azul.png';
 
 export function useColisoes() {
   const templos = [
     {
       id: 'templo_verde', // ID único para o templo da esquerda
-      x: 160, y: 184, largura: 294, altura: 380,
-      porta: { x: 160, y: 560, largura: 294, altura: 10 },
+      x: 135, y: 152, largura: 243, altura: 320,
+      porta: { x: 135, y: 465, largura: 243, altura: 10 },
       interiorImageSrc: temploVerdeSrc,
       spawnPoint: { x: 745, y: 680 }, // Ponto de spawn para este interior
       interior: {
         paredes: [
-          // Exemplo de paredes para o templo verde. Adicione quantas precisar.
           { x: 0, y: 240, largura: 20, altura: 275 }, // Parede esquerda
           { x: 0, y: 240, largura: 390, altura: 60 }, // Parede esquerda
           { x: 0, y: 440, largura: 390, altura: 60 }, // Parede esquerda
