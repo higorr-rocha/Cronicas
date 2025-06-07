@@ -157,46 +157,53 @@ function update() {
         }
       }
     } else if (currentMap.value.startsWith('templo_')) {
-      const temploAtual = templos.find(t => t.id === currentMap.value);
-      
-      if (temploAtual && temploAtual.interior) {
-        const { paredes, saida, puzzle } = temploAtual.interior;
-        let movimentoBloqueado = false;
+        const temploAtual = templos.find(t => t.id === currentMap.value);
+        
+        if (temploAtual && temploAtual.interior) {
+          // Destruturamos todos os possíveis elementos do interior
+          const { paredes, saida, puzzle, artefato } = temploAtual.interior;
+          let movimentoBloqueado = false;
 
-        if (puzzle) {
-          // Verifica colisão com a porta final
-          if (puzzleStatus.value !== 'resolvido' && retangulosColidem(playerRect, puzzle.portaFinal)) {
-            movimentoBloqueado = true;
-          }
-
-          const botaoPressionado = puzzle.botoes.find(b => retangulosColidem(playerRect, b));
-          if (botaoPressionado) {
-            movimentoBloqueado = true; // Para o jogador para ele poder interagir
-
-            if (podeAtivar(botaoPressionado.id)) {
-              abrirDialogo(botaoPressionado, `Ativar o botão?\nE - Sim   ESC - Não`);
+          // Lógica do Puzzle (só executa se houver um puzzle)
+          if (puzzle) {
+            // Bloqueia a porta final se o puzzle não estiver resolvido
+            if (puzzleStatus.value !== 'resolvido' && retangulosColidem(playerRect, puzzle.portaFinal)) {
+              movimentoBloqueado = true;
+            }
+            
+            // Verifica colisão com os botões
+            const botaoPressionado = puzzle.botoes.find(b => retangulosColidem(playerRect, b));
+            if (botaoPressionado) {
+              movimentoBloqueado = true;
+              if (podeAtivar(botaoPressionado.id)) {
+                abrirDialogo(botaoPressionado, `Ativar o botão?\nE - Sim   ESC - Não`);
+              }
             }
           }
 
-          if (puzzleStatus.value === 'resolvido' && !temItem(puzzle.artefato.id) && retangulosColidem(playerRect, puzzle.artefato)) {
+          // Lógica do Artefato
+          // Condição para poder coletar: ou não existe puzzle, ou o puzzle foi resolvido
+          const podeColetar = !puzzle || puzzleStatus.value === 'resolvido';
+          if (artefato && podeColetar && !temItem(artefato.id) && retangulosColidem(playerRect, artefato)) {
             movimentoBloqueado = true;
-            abrirDialogo(puzzle.artefato, 'Coletar Artefato?\nE - Sim   ESC - Não');
+            abrirDialogo(artefato, 'Coletar Artefato?\nE - Sim   ESC - Não');
+          }
+
+          // Lógica de Saída e Paredes
+          if (retangulosColidem(playerRect, saida)) {
+            movimentoBloqueado = true;
+            abrirDialogo({ id: 'saida', origem: temploAtual }, 'Deseja sair?\nE - Sim   ESC - Não');
+          } else if (paredes.some(p => retangulosColidem(playerRect, p))) {
+            movimentoBloqueado = true;
+          }
+
+          // Efetiva o movimento apenas se não estiver bloqueado
+          if (!movimentoBloqueado) {
+            player.value.x = boundedX;
+            player.value.y = boundedY;
           }
         }
-
-        if (retangulosColidem(playerRect, saida)) {
-          movimentoBloqueado = true
-          abrirDialogo({ id: 'saida', origem: temploAtual }, 'Deseja sair?\nE - Sim   ESC - Não');
-        } else if (paredes.some(p => retangulosColidem(playerRect, p))) {
-          movimentoBloqueado = true;
-        }
-
-        if (!movimentoBloqueado) {
-          player.value.x = boundedX;
-          player.value.y = boundedY;
-        }  
-      }
-    } else if (currentMap.value === 'base') {
+      } else if (currentMap.value === 'base') {
       const { paredes, saida } = mapaBase;
       if (retangulosColidem(playerRect, saida)) {
         abrirDialogo('saida_base', 'Deseja ir para os templos?\nE - Sim   ESC - Não');
@@ -243,16 +250,13 @@ function draw() {
   } else {
     const temploAtual = templos.find(t => t.id === currentMap.value); 
     if (temploAtual) {
-      const artefatoId = temploAtual.interior?.puzzle?.artefato?.id;
+      const artefatoId = temploAtual.interior?.artefato?.id;
 
       if (artefatoId && temItem(artefatoId) && interiorMapImages[`${temploAtual.id}_coletado`]) {
-        // 1. Se o item foi coletado, mostra o mapa "coletado"
         currentMapImage = interiorMapImages[`${temploAtual.id}_coletado`];
       } else if (puzzleStatus.value === 'resolvido' && interiorMapImages[`${temploAtual.id}_aberto`]) {
-        // 2. Se não, mas o puzzle foi resolvido, mostra o mapa com a "porta aberta"
         currentMapImage = interiorMapImages[`${temploAtual.id}_aberto`];
       } else {
-        // 3. Caso contrário, mostra o mapa padrão
         currentMapImage = interiorMapImages[temploAtual.id];
       }
     }
@@ -317,6 +321,11 @@ function draw() {
           context.strokeRect(artefato.x, artefato.y, artefato.largura, artefato.altura);
         }
       }
+      const { artefato } = temploAtual.interior;
+      if (artefato && !temItem(artefato.id)) {
+        context.strokeStyle = 'magenta';
+        context.strokeRect(artefato.x, artefato.y, artefato.largura, artefato.altura);
+      }
     } else if (currentMap.value === 'base') {
         context.strokeStyle = 'green';
         mapaBase.paredes.forEach(p => context.strokeRect(p.x, p.y, p.largura, p.altura));
@@ -377,11 +386,11 @@ onMounted(() => {
       imagePromises.push(new Promise(resolve => { imgColetado.onload = resolve; }));
     }
 
-    if (templo.interior?.puzzle?.artefato?.hudImageSrc) {
-      const artefato = templo.interior.puzzle.artefato;
+    if (templo.interior?.artefato?.hudImageSrc) {
+      const artefato = templo.interior.artefato;
       const img = new Image();
       img.src = artefato.hudImageSrc;
-      hudImages[artefato.id] = img; // Armazena a imagem da HUD
+      hudImages[artefato.id] = img;
       imagePromises.push(new Promise(resolve => { img.onload = resolve; }));
     }
   });

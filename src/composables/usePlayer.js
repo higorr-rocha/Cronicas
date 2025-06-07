@@ -4,8 +4,8 @@ export function usePlayer() {
   const player = ref({
     x: 194,
     y: 435,
-    // x: 620,
-    // y: 570,
+    // x: 700,
+    // y: 540,
     width: 32,
     height: 64,
     hitbox: {

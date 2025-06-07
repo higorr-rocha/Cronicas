@@ -3,7 +3,12 @@ import temploVerdeAbertoSrc from '../assets/Mapas/templo_verde_aberto.png';
 import temploVerdeColetadoSrc from '../assets/Mapas/templo_verde_coletado.png';
 import anelVerdeSrc from '../assets/Itens/anel_verde.png';
 import temploVermelhoSrc from '../assets/Mapas/templo_vermelho.png';
+import temploVermelhoAbertoSrc from '../assets/Mapas/templo_vermelho_aberto.png';
+import temploVermelhoColetadoSrc from '../assets/Mapas/templo_vermelho_coletado.png';
+import anelVermelhoSrc from '../assets/Itens/anel_vermelho.png';
 import temploAzulSrc from '../assets/Mapas/templo_azul.png';
+import temploAzulColetadoSrc from '../assets/Mapas/templo_azul_coletado.png';
+import anelAzulSrc from '../assets/Itens/anel_azul.png';
 import baseSrc from '../assets/Mapas/base.png';
 
 export function useColisoes() {
@@ -35,9 +40,16 @@ export function useColisoes() {
           { x: 805, y: 385, largura: 15, altura: 300 }, // Parede de baixo esquerda
           { x: 445, y: 640, largura: 150, altura: 90 }, // Parede de baixo
           { x: 665, y: 640, largura: 155, altura: 90 }, // Parede de baixo
-
         ],
         saida: { x: 595, y: 640, largura: 70, altura: 10 }, // Porta de saída
+        artefato: {
+          id: 'anel_verde',
+          x: 635,
+          y: 96,
+          largura: 25,
+          altura: 20,
+          hudImageSrc: anelVerdeSrc // Imagem que aparecerá na HUD
+        },
         puzzle: {
           portaFinal: { x: 600, y: 215, largura: 65, altura: 10 },
           botoes: [
@@ -54,15 +66,7 @@ export function useColisoes() {
             { id: 'btn_parede_5', x: 234, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_6', x: 269, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_7', x: 1080, y: 248, largura: 24, altura: 12 },
-          ],
-          artefato: {
-            id: 'anel_verde',
-            x: 635,
-            y: 96,
-            largura: 25,
-            altura: 20,
-            hudImageSrc: anelVerdeSrc // Imagem que aparecerá na HUD
-          }
+          ]
         }
       }
     },
@@ -74,10 +78,51 @@ export function useColisoes() {
       spawnPoint: { x: 620, y: 570 },
       interior: {
         paredes: [
-          // Adicione as paredes do templo vermelho aqui. Ex:
-          { x: 640, y: 0, largura: 500, altura: 150 },
+          { x: 430, y: 0, largura: 465, altura: 55 },
+          { x: 0, y: 265, largura: 430, altura: 55 },
+          { x: 0, y: 475, largura: 426, altura: 10 },
+          { x: 0, y: 265, largura: 20, altura: 215 },
+          { x: 445, y: 225, largura: 175, altura: 70 },
+          { x: 703, y: 225, largura: 173, altura: 70 },
+          { x: 895, y: 265, largura: 365, altura: 55 },
+          { x: 895, y: 475, largura: 365, altura: 10 },
+          { x: 1260, y: 265, largura: 20, altura: 216 },
+          { x: 428, y: 4, largura: 20, altura: 350 },
+          { x: 875, y: 4, largura: 20, altura: 350 },
+          { x: 428, y: 450, largura: 20, altura: 250 },
+          { x: 875, y: 450, largura: 20, altura: 250 },
+          { x: 445, y: 510, largura: 175, altura: 55 },
+          { x: 703, y: 510, largura: 173, altura: 55 },
+          { x: 445, y: 700, largura: 170, altura: 8 },
+          { x: 703, y: 700, largura: 170, altura: 8 },
         ],
-        saida: { x: 600, y: 650, largura: 80, altura: 10 }
+        saida: { x: 620, y: 700, largura: 85, altura: 10 },
+        artefato: {
+          id: 'anel_vermelho',
+          x: 650,
+          y: 140,
+          largura: 25,
+          altura: 20,
+          hudImageSrc: anelVermelhoSrc
+        },
+        papel: {
+          id: 'papel_enigma_2',
+          x: 195,
+          y: 400,
+          largura: 40,
+          altura: 25,
+        },
+        puzzle: {
+          portaFinal: { x: 0, y: 0, largura: 65, altura: 10 },
+          botoes: [
+            // Botões do chão
+            { id: 'btn_janela', x: 500, y: 110, largura: 25, altura: 20 },
+            { id: 'btn_estrela', x: 500, y: 170, largura: 25, altura: 20 },
+            { id: 'btn_sol', x: 799, y: 110, largura: 25, altura: 20 },
+            { id: 'btn_arvore', x: 1184, y: 435, largura: 25, altura: 20 },
+            { id: 'btn_lua', x: 1184, y: 374, largura: 25, altura: 20 },
+          ],
+        }
       }
     },
     {
@@ -85,13 +130,56 @@ export function useColisoes() {
       x: 955, y: 135, largura: 243, altura: 320,
       porta: { x: 955, y: 445, largura: 243, altura: 10 },
       interiorImageSrc: temploAzulSrc,
+      interiorColetadoImageSrc: temploAzulColetadoSrc,
       spawnPoint: { x: 700, y: 600 },
       interior: {
         paredes: [
-          // Adicione as paredes do templo azul aqui. Ex:
-          { x: 640, y: 0, largura: 150, altura: 720 },
+          { x: 469, y: 535, largura: 314, altura: 10 },
+          { x: 155, y: 478, largura: 500, altura: 5 },
+          { x: 28, y: 600, largura: 660, altura: 10 },
+          { x: 310, y: 359, largura: 155, altura: 5 },
+          { x: 750, y: 600, largura: 500, altura: 10 },
+          { x: 0, y: 416, largura: 185, altura: 5 },
+          { x: 625, y: 418, largura: 340, altura: 5 },
+          { x: 0, y: 235, largura: 185, altura: 5 },
+          { x: 155, y: 295, largura: 315, altura: 5 },
+          { x: 155, y: 178, largura: 655, altura: 5 },
+          { x: 5, y: 117, largura: 650, altura: 5 },
+          { x: 780, y: 117, largura: 472, altura: 5 },
+          { x: 468, y: 238, largura: 500, altura: 5 },
+          { x: 810, y: 298, largura: 157, altura: 5 },
+          { x: 938, y: 359, largura: 157, altura: 5 },
+          { x: 938, y: 479, largura: 157, altura: 5 },
+          { x: 938, y: 177, largura: 185, altura: 5 },
+          { x: 1095, y: 420, largura: 157, altura: 5 },
+          { x: 0, y: 115, largura: 30, altura: 495 },
+          { x: 1250, y: 115, largura: 30, altura: 495 },
+          { x: 468, y: 240, largura: 30, altura: 180 },
+          { x: 155, y: 295, largura: 30, altura: 115 },
+          { x: 312, y: 360, largura: 30, altura: 65 },
+          { x: 312, y: 480, largura: 30, altura: 120 },
+          { x: 155, y: 480, largura: 30, altura: 65 },
+          { x: 312, y: 180, largura: 30, altura: 60 },
+          { x: 625, y: 295, largura: 30, altura: 120 },
+          { x: 782, y: 245, largura: 30, altura: 115 },
+          { x: 782, y: 420, largura: 30, altura: 180 },
+          { x: 782, y: 120, largura: 30, altura: 65 },
+          { x: 1095, y: 235, largura: 30, altura: 130 },
+          { x: 938, y: 360, largura: 30, altura: 65 },
+          { x: 938, y: 483, largura: 30, altura: 65 },
+          { x: 938, y: 180, largura: 30, altura: 65 },
+          { x: 1095, y: 420, largura: 30, altura: 65 },
+          { x: 1095, y: 540, largura: 30, altura: 65 },
         ],
-        saida: { x: 600, y: 650, largura: 80, altura: 10 }
+        saida: { x: 686, y: 680, largura: 63, altura: 10 },
+        artefato: {
+          id: 'anel_azul',
+          x: 706,
+          y: 73,
+          largura: 27,
+          altura: 20,
+          hudImageSrc: anelAzulSrc // Imagem que aparecerá na HUD
+        }
       }
     },
   ];
