@@ -11,8 +11,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import mapSrc from '../assets/templos.png';
+import { Howl } from 'howler';
+import mapSrc from '../assets/Mapas/templos.png';
 import playerSrc from '../assets/player_spritesheet.png';
+import passosAudio from '../assets/Sons/passos.ogg';
 import { useColisoes } from '../composables/useColisoes.js';
 import { usePlayer } from '../composables/usePlayer.js';
 import { useTeclado } from '../composables/useTeclado.js';
@@ -35,6 +37,14 @@ mapImage.src = mapSrc;
 const interiorMapImages = {};
 const playerImage = new Image();
 playerImage.src = playerSrc;
+
+// Som de passos
+const somPassos = new Howl({
+  src: [passosAudio],
+  volume: 0.6
+});
+let ultimoPasso = 0;
+const intervaloPassos = 350; // milissegundos entre sons
 
 // Sistemas
 const { verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta, aviao, retangulosColidem } = useColisoes();
@@ -111,9 +121,18 @@ useTeclado(keys, handleKeyPress);
 function update() {
   if (!dialog.value.visible) {
     const { nextX, nextY } = moverJogador(keys.value);
-    const boundedX = Math.max(0, Math.min(gameWidth.value - player.value.width, nextX));
-    const boundedY = Math.max(0, Math.min(gameHeight.value - player.value.height, nextY));
+    const boundedX = Math.max(0, Math.min(GAME_WIDTH - player.value.width, nextX));
+    const boundedY = Math.max(0, Math.min(GAME_HEIGHT - player.value.height, nextY));
     const playerRect = rectFromPlayer(boundedX, boundedY);
+
+    // Verifica se o jogador está se movendo
+    const estaSeMovendo = player.value.x !== nextX || player.value.y !== nextY;
+    const agora = Date.now();
+
+    if (estaSeMovendo && agora - ultimoPasso >= intervaloPassos) {
+      somPassos.play();
+      ultimoPasso = agora;
+    }
 
     if (currentMap.value === 'exterior') {
       const temploComPorta = verificaColisaoPorta(playerRect);
@@ -151,44 +170,58 @@ function update() {
 }
 
 function draw() {
-  context.clearRect(0, 0, gameWidth.value, gameHeight.value);
+  const scaleX = gameWidth.value / GAME_WIDTH;
+  const scaleY = gameHeight.value / GAME_HEIGHT;
 
+  // Salva o estado do canvas (sem escala)
+  context.save();
+
+  // Aplica a escala a TODO o canvas
+  context.scale(scaleX, scaleY);
+
+  // A partir daqui, tudo é desenhado usando as coordenadas do "mundo" (1280x720)
+  // e será automaticamente escalado para a tela.
+  
+  context.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+  // 1. Desenha o mapa de fundo no tamanho original do mundo
   let currentMapImage;
-
+  const { templos } = useColisoes(); // Precisamos dos templos para buscar a imagem
   if (currentMap.value === 'exterior') {
     currentMapImage = mapImage;
   } else {
-    // Procura a imagem do interior no nosso objeto
-    currentMapImage = interiorMapImages[currentMap.value];
+    const temploAtual = templos.find(t => t.id === currentMap.value);
+    if (temploAtual) {
+      // Busca a imagem já carregada no onMounted
+      currentMapImage = interiorMapImages[temploAtual.id];
+    }
   }
 
-  // Desenha o mapa
   if (currentMapImage && currentMapImage.complete) {
-    context.drawImage(currentMapImage, 0, 0, gameWidth.value, gameHeight.value);
+    context.drawImage(currentMapImage, 0, 0, GAME_WIDTH, GAME_HEIGHT);
   }
 
-  // Desenha o jogador
+  // 2. Desenha o jogador usando as coordenadas do mundo
   const frameWidth = playerImage.width / player.value.frameCount;
   const frameHeight = playerImage.height / 4;
-
   context.drawImage(
     playerImage,
     frameWidth * player.value.frameIndex,
     frameHeight * player.value.direction,
-    frameWidth,
-    frameHeight,
+    frameWidth, frameHeight,
     player.value.x,
     player.value.y,
     player.value.width,
     player.value.height
   );
 
+  // 3. Desenha as caixas de colisão de depuração (se ativadas)
   if (showCollisionBoxes.value) {
-    const { templos, aviao } = useColisoes();
-    context.lineWidth = 2;
+    // Não precisamos mais multiplicar pela escala aqui, pois o canvas já está escalado
+    const { aviao } = useColisoes();
+    context.lineWidth = 2 / scaleX; // Ajusta a espessura da linha para não ficar grossa demais
 
     if (currentMap.value === 'exterior') {
-      // Desenha colisões do mapa exterior
       context.strokeStyle = 'green';
       templos.forEach(t => context.strokeRect(t.x, t.y, t.largura, t.altura));
       context.strokeRect(aviao.x, aviao.y, aviao.largura, aviao.altura);
@@ -198,20 +231,20 @@ function draw() {
       aviao.porta && context.strokeRect(aviao.porta.x, aviao.porta.y, aviao.porta.largura, aviao.porta.altura);
 
     } else if (currentMap.value.startsWith('templo_')) {
-      // NOVA LÓGICA PARA DESENHAR COLISÕES DO INTERIOR
       const temploAtual = templos.find(t => t.id === currentMap.value);
       if (temploAtual && temploAtual.interior) {
-        // Desenha as paredes em verde
         context.strokeStyle = 'green';
         temploAtual.interior.paredes.forEach(p => context.strokeRect(p.x, p.y, p.largura, p.altura));
-      
-        // Desenha a porta de saída em amarelo
+        
         context.strokeStyle = 'yellow';
         const { saida } = temploAtual.interior;
         context.strokeRect(saida.x, saida.y, saida.largura, saida.altura);
       }
     }
   }
+
+  // Restaura o estado do canvas para o original (sem escala)
+  context.restore();
 }
 
 function gameLoop() {
