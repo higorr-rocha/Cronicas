@@ -1,4 +1,3 @@
-// Cronicas/src/composables/useTeclado.js
 import { onMounted, onUnmounted } from 'vue';
 
 export function useTeclado(keys, onInteracaoTecla) {

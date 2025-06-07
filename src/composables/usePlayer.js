@@ -2,8 +2,10 @@ import { ref } from 'vue';
 
 export function usePlayer() {
   const player = ref({
-    x: 460,
-    y: 725,
+    x: 194,
+    y: 435,
+    // x: 620,
+    // y: 570,
     width: 32,
     height: 64,
     hitbox: {

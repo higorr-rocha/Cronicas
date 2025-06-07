@@ -19,6 +19,8 @@ import { useColisoes } from '../composables/useColisoes.js';
 import { usePlayer } from '../composables/usePlayer.js';
 import { useTeclado } from '../composables/useTeclado.js';
 import { useDialog } from '../composables/useDialog.js';
+import { usePuzzle } from '../composables/usePuzzle.js';
+import { useInventario } from '../composables/useInventario.js';
 
 // Configurações do jogo
 const GAME_WIDTH = 1280;
@@ -35,6 +37,7 @@ const gameHeight = ref(GAME_HEIGHT);
 const mapImage = new Image();
 mapImage.src = mapSrc;
 const interiorMapImages = {};
+const hudImages = {};
 const playerImage = new Image();
 playerImage.src = playerSrc;
 
@@ -47,13 +50,24 @@ let ultimoPasso = 0;
 const intervaloPassos = 350; // milissegundos entre sons
 
 // Sistemas
-const { verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta, aviao, retangulosColidem } = useColisoes();
+const { templos, aviao, mapaBase, retangulosColidem, verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta } = useColisoes();
 const { player, keys, moverJogador } = usePlayer();
-const currentMap = ref('exterior');
-const temploAtual = ref(null);
-const { dialog, abrirDialogo, processarTecla: processarTeclaDialogo } = useDialog(player, currentMap, aviao, temploAtual);
+const currentMap = ref('base');
+const { puzzleStatus, ativarBotao, podeAtivar } = usePuzzle();
+const { inventario, adicionarItem, temItem } = useInventario();
+const baseMapImage = new Image();
+baseMapImage.src = mapaBase.interiorImageSrc;
+const { dialog, abrirDialogo, processarTecla: processarTeclaDialogo } = useDialog(player, currentMap, aviao, ativarBotao, adicionarItem);
 let context;
 let animationFrameId = null;
+
+inventario.value.forEach(item => {
+  if (item.hudImageSrc) {
+    const img = new Image();
+    img.src = item.hudImageSrc;
+    hudImages[item.id] = img;
+  }
+});
 
 const showCollisionBoxes = ref(false); // Variável para controlar a exibição
 function handleKeyPress(e) {
@@ -116,28 +130,25 @@ function rectFromPlayer(newX, newY) {
 
 useTeclado(keys, handleKeyPress);
 
-// Em Cronicas/src/components/Game.vue
-
 function update() {
   if (!dialog.value.visible) {
+    const xAnterior = player.value.x;
+    const yAnterior = player.value.y;
+
     const { nextX, nextY } = moverJogador(keys.value);
     const boundedX = Math.max(0, Math.min(GAME_WIDTH - player.value.width, nextX));
     const boundedY = Math.max(0, Math.min(GAME_HEIGHT - player.value.height, nextY));
     const playerRect = rectFromPlayer(boundedX, boundedY);
 
-    // Verifica se o jogador está se movendo
-    const estaSeMovendo = player.value.x !== nextX || player.value.y !== nextY;
-    const agora = Date.now();
-
-    if (estaSeMovendo && agora - ultimoPasso >= intervaloPassos) {
-      somPassos.play();
-      ultimoPasso = agora;
-    }
-
     if (currentMap.value === 'exterior') {
-      const temploComPorta = verificaColisaoPorta(playerRect);
-      if (temploComPorta) {
-        abrirDialogo(temploComPorta, 'Deseja entrar?\nE - Sim   ESC - Não');
+      const objetoComPorta = verificaColisaoPorta(playerRect);
+      if (objetoComPorta) {
+        // LÓGICA CORRIGIDA AQUI
+        if (objetoComPorta.id === 'aviao') {
+          abrirDialogo(objetoComPorta, 'Voltar para a base?\nE - Sim   ESC - Não');
+        } else {
+          abrirDialogo(objetoComPorta, 'Deseja entrar?\nE - Sim   ESC - Não');
+        }
       } else {
         const colidiuComBarreira = verificaColisaoTemplos(playerRect) || verificaColisaoAviao(playerRect);
         if (!colidiuComBarreira) {
@@ -146,25 +157,64 @@ function update() {
         }
       }
     } else if (currentMap.value.startsWith('templo_')) {
-      // NOVA LÓGICA PARA INTERIORES
-      const { templos } = useColisoes();
       const temploAtual = templos.find(t => t.id === currentMap.value);
       
       if (temploAtual && temploAtual.interior) {
-        const { paredes, saida } = temploAtual.interior;
+        const { paredes, saida, puzzle } = temploAtual.interior;
+        let movimentoBloqueado = false;
 
-        // Verifica colisão com a porta de saída
-        if (retangulosColidem(playerRect, saida)) {
-          abrirDialogo('saida', 'Deseja sair?\nE - Sim   ESC - Não');
-        } else {
-          // Verifica colisão com as paredes do interior
-          const colidiuComParede = paredes.some(p => retangulosColidem(playerRect, p));
-          if (!colidiuComParede) {
-            player.value.x = boundedX;
-            player.value.y = boundedY;
+        if (puzzle) {
+          // Verifica colisão com a porta final
+          if (puzzleStatus.value !== 'resolvido' && retangulosColidem(playerRect, puzzle.portaFinal)) {
+            movimentoBloqueado = true;
+          }
+
+          const botaoPressionado = puzzle.botoes.find(b => retangulosColidem(playerRect, b));
+          if (botaoPressionado) {
+            movimentoBloqueado = true; // Para o jogador para ele poder interagir
+
+            if (podeAtivar(botaoPressionado.id)) {
+              abrirDialogo(botaoPressionado, `Ativar o botão?\nE - Sim   ESC - Não`);
+            }
+          }
+
+          if (puzzleStatus.value === 'resolvido' && !temItem(puzzle.artefato.id) && retangulosColidem(playerRect, puzzle.artefato)) {
+            movimentoBloqueado = true;
+            abrirDialogo(puzzle.artefato, 'Coletar Artefato?\nE - Sim   ESC - Não');
           }
         }
+
+        if (retangulosColidem(playerRect, saida)) {
+          movimentoBloqueado = true
+          abrirDialogo({ id: 'saida', origem: temploAtual }, 'Deseja sair?\nE - Sim   ESC - Não');
+        } else if (paredes.some(p => retangulosColidem(playerRect, p))) {
+          movimentoBloqueado = true;
+        }
+
+        if (!movimentoBloqueado) {
+          player.value.x = boundedX;
+          player.value.y = boundedY;
+        }  
       }
+    } else if (currentMap.value === 'base') {
+      const { paredes, saida } = mapaBase;
+      if (retangulosColidem(playerRect, saida)) {
+        abrirDialogo('saida_base', 'Deseja ir para os templos?\nE - Sim   ESC - Não');
+      } else {
+        const colidiuComParede = paredes.some(p => retangulosColidem(playerRect, p));
+        if (!colidiuComParede) {
+          player.value.x = boundedX;
+          player.value.y = boundedY;
+        }
+      }
+    }
+
+    // Lógica de som de passos
+    const realmenteMoveu = player.value.x !== xAnterior || player.value.y !== yAnterior;
+    const agora = Date.now();
+    if (realmenteMoveu && agora - ultimoPasso > intervaloPassos) {
+      somPassos.play();
+      ultimoPasso = agora;
     }
   }
 }
@@ -186,14 +236,25 @@ function draw() {
 
   // 1. Desenha o mapa de fundo no tamanho original do mundo
   let currentMapImage;
-  const { templos } = useColisoes(); // Precisamos dos templos para buscar a imagem
   if (currentMap.value === 'exterior') {
     currentMapImage = mapImage;
+  } else if (currentMap.value === 'base') {
+    currentMapImage = baseMapImage;
   } else {
-    const temploAtual = templos.find(t => t.id === currentMap.value);
+    const temploAtual = templos.find(t => t.id === currentMap.value); 
     if (temploAtual) {
-      // Busca a imagem já carregada no onMounted
-      currentMapImage = interiorMapImages[temploAtual.id];
+      const artefatoId = temploAtual.interior?.puzzle?.artefato?.id;
+
+      if (artefatoId && temItem(artefatoId) && interiorMapImages[`${temploAtual.id}_coletado`]) {
+        // 1. Se o item foi coletado, mostra o mapa "coletado"
+        currentMapImage = interiorMapImages[`${temploAtual.id}_coletado`];
+      } else if (puzzleStatus.value === 'resolvido' && interiorMapImages[`${temploAtual.id}_aberto`]) {
+        // 2. Se não, mas o puzzle foi resolvido, mostra o mapa com a "porta aberta"
+        currentMapImage = interiorMapImages[`${temploAtual.id}_aberto`];
+      } else {
+        // 3. Caso contrário, mostra o mapa padrão
+        currentMapImage = interiorMapImages[temploAtual.id];
+      }
     }
   }
 
@@ -240,11 +301,42 @@ function draw() {
         const { saida } = temploAtual.interior;
         context.strokeRect(saida.x, saida.y, saida.largura, saida.altura);
       }
+      if (temploAtual.interior.puzzle) {
+        const { portaFinal, botoes, artefato } = temploAtual.interior.puzzle;
+
+        // Desenha os botões do puzzle em azul
+        context.strokeStyle = 'blue';
+        botoes.forEach(b => context.strokeRect(b.x, b.y, b.largura, b.altura));
+
+        // Desenha a porta final do puzzle em vermelho
+        context.strokeStyle = 'red';
+        context.strokeRect(portaFinal.x, portaFinal.y, portaFinal.largura, portaFinal.altura);
+
+        if (artefato && !temItem(artefato.id)) {
+          context.strokeStyle = 'magenta';
+          context.strokeRect(artefato.x, artefato.y, artefato.largura, artefato.altura);
+        }
+      }
+    } else if (currentMap.value === 'base') {
+        context.strokeStyle = 'green';
+        mapaBase.paredes.forEach(p => context.strokeRect(p.x, p.y, p.largura, p.altura));
+        
+        context.strokeStyle = 'yellow';
+        const { saida } = mapaBase;
+        context.strokeRect(saida.x, saida.y, saida.largura, saida.altura);
     }
   }
 
   // Restaura o estado do canvas para o original (sem escala)
   context.restore();
+
+  inventario.value.forEach((item, index) => {
+    const hudImage = hudImages[item.id]; // Pega a imagem pré-carregada
+
+    if (hudImage && hudImage.complete) {
+      context.drawImage(hudImage, 20 + (index * 60), 20, 50, 50);
+    }
+  });
 }
 
 function gameLoop() {
@@ -261,14 +353,37 @@ onMounted(() => {
   // Cria uma lista de promessas para carregar TODAS as imagens
   const imagePromises = [
     new Promise(resolve => { mapImage.onload = resolve; }),
+    new Promise(resolve => { baseMapImage.onload = resolve; }),
     new Promise(resolve => { playerImage.onload = resolve; })
   ];
 
   templos.forEach(templo => {
-    const img = new Image();
-    img.src = templo.interiorImageSrc;
-    interiorMapImages[templo.id] = img; // Armazena a imagem no nosso objeto
-    imagePromises.push(new Promise(resolve => { img.onload = resolve; }));
+    const imgFechada = new Image();
+    imgFechada.src = templo.interiorImageSrc;
+    interiorMapImages[templo.id] = imgFechada;
+    imagePromises.push(new Promise(resolve => { imgFechada.onload = resolve; }));
+
+    if (templo.interiorAbertoImageSrc) {
+      const imgAberta = new Image();
+      imgAberta.src = templo.interiorAbertoImageSrc;
+      interiorMapImages[`${templo.id}_aberto`] = imgAberta;
+      imagePromises.push(new Promise(resolve => { imgAberta.onload = resolve; }));
+    }
+
+    if (templo.interiorColetadoImageSrc) {
+      const imgColetado = new Image();
+      imgColetado.src = templo.interiorColetadoImageSrc;
+      interiorMapImages[`${templo.id}_coletado`] = imgColetado;
+      imagePromises.push(new Promise(resolve => { imgColetado.onload = resolve; }));
+    }
+
+    if (templo.interior?.puzzle?.artefato?.hudImageSrc) {
+      const artefato = templo.interior.puzzle.artefato;
+      const img = new Image();
+      img.src = artefato.hudImageSrc;
+      hudImages[artefato.id] = img; // Armazena a imagem da HUD
+      imagePromises.push(new Promise(resolve => { img.onload = resolve; }));
+    }
   });
 
   Promise.all(imagePromises).then(() => {

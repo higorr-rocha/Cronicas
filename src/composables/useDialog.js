@@ -6,7 +6,7 @@ import { ref } from 'vue';
  * @param {Ref<string>} currentMap - A referência reativa do mapa atual.
  * @param {object} aviao - O objeto do avião para comparações.
  */
-export function useDialog(player, currentMap, aviao, temploAtual) {
+export function useDialog(player, currentMap, aviao, ativarBotao, adicionarItem) {
   const dialog = ref({
     visible: false,
     message: '',
@@ -38,38 +38,52 @@ export function useDialog(player, currentMap, aviao, temploAtual) {
    * Esta função contém a lógica de mudança de mapa.
    * @param {KeyboardEvent} e - O evento do teclado.
    */
+
   function processarTecla(e) {
     if (!dialog.value.visible) return;
 
     if (e.key.toLowerCase() === 'e') {
       const alvo = dialog.value.currentTemplo;
 
-      if (alvo === aviao) {
-        alert('Você entrou no avião!');
-      } else if (alvo === 'saida') {
-        // NOVA LÓGICA DE SAÍDA
+      // LÓGICA REFEITA E SIMPLIFICADA
+      if (alvo && alvo.id === 'saida') {
+        // Agora pegamos o templo de origem diretamente do 'alvo'
+        const temploDeOrigem = alvo.origem;
         currentMap.value = 'exterior';
-        
-        if (temploAtual.value) {
-          const temploDeOrigem = temploAtual.value;
-          
-          // Calcula a posição de saída com base nos dados do templo de origem
-          // Meio do templo no eixo X (considerando o centro do jogador)
-          player.value.x = temploDeOrigem.x + (temploDeOrigem.largura / 2) - (player.value.width / 2);
-          // 5 pixels abaixo da porta no eixo Y
-          player.value.y = temploDeOrigem.porta.y + 10;
-          // Vira o personagem para baixo
-          player.value.direction = 1; 
-        }
 
-      } else {
-        // Lógica de entrada
+        if (temploDeOrigem) {
+          player.value.x = temploDeOrigem.x + (temploDeOrigem.largura / 2) - (player.value.width / 2);
+          player.value.y = temploDeOrigem.porta.y + 10;
+        } else {
+          console.error("Não foi possível determinar o templo de origem. Usando saída padrão.");
+          player.value.x = aviao.x + aviao.largura + 10;
+          player.value.y = aviao.y + (aviao.altura / 2);
+        }
+        player.value.direction = 1;
+
+      } else if (alvo === 'saida_base') {
+        currentMap.value = 'exterior';
+        player.value.x = aviao.x + aviao.largura + 10;
+        player.value.y = aviao.y + (aviao.altura / 2);
+        player.value.direction = 3;
+
+      } else if (alvo && alvo.id === 'anel_verde') {
+        adicionarItem(alvo);
+      
+      } else if (alvo && alvo.id.startsWith('btn_')) {
+        ativarBotao(alvo.id);
+        
+      } else if (alvo && alvo.id === 'aviao') {
+        currentMap.value = 'base';
+        player.value.x = alvo.spawnPoint.x;
+        player.value.y = alvo.spawnPoint.y;
+        player.value.direction = 2;
+
+      } else if (alvo && alvo.id) { 
+        // Lógica de entrada nos templos (não precisa mais setar temploAtual)
         currentMap.value = alvo.id;
         player.value.x = alvo.spawnPoint.x;
         player.value.y = alvo.spawnPoint.y;
-        
-        // AQUI "LEMBRAMOS" EM QUAL TEMPLO ENTRAMOS
-        temploAtual.value = alvo; 
       }
       
       fecharDialogo();
