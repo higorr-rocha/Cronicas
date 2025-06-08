@@ -375,7 +375,19 @@ function draw() {
     player.value.height
   );
 
-  // 3. Desenha as caixas de colisão de depuração (se ativadas)
+  // 3. Adiciona "Fog" no mapa do templo azul
+  if (currentMap.value === 'templo_azul' && !temItem('anel_azul')) {
+    context.fillStyle = 'rgba(0, 0, 0, 0.94)';
+    context.beginPath();
+    context.rect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    const playerCenterX = player.value.x + player.value.width / 2;
+    const playerCenterY = player.value.y + player.value.height / 2;
+    const lightRadius = 65;
+    context.arc(playerCenterX, playerCenterY, lightRadius, 0, 2 * Math.PI, true);
+    context.fill();
+  }
+
+  // 4. Desenha as caixas de colisão de depuração (se ativadas)
   if (showCollisionBoxes.value) {
     context.lineWidth = 2 / scaleX;
 
