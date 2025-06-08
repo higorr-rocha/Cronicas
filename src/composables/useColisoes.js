@@ -10,6 +10,10 @@ import temploAzulSrc from '../assets/Mapas/templo_azul.png';
 import temploAzulColetadoSrc from '../assets/Mapas/templo_azul_coletado.png';
 import anelAzulSrc from '../assets/Itens/anel_azul.png';
 import baseSrc from '../assets/Mapas/base.png';
+import predioSrc from '../assets/Mapas/predio.png';
+import predioInteriorSrc from '../assets/Mapas/predio_interior.png';
+import predioColetadoSrc from '../assets/Mapas/predio_coletado.png';
+import artefatoSrc from '../assets/Itens/artefato.png';
 
 export function useColisoes() {
   const templos = [
@@ -44,30 +48,35 @@ export function useColisoes() {
         saida: { x: 595, y: 640, largura: 70, altura: 10 }, // Porta de saída
         artefato: {
           id: 'anel_verde',
+          type: 'artefato',
           x: 635,
           y: 96,
           largura: 25,
           altura: 20,
           hudImageSrc: anelVerdeSrc // Imagem que aparecerá na HUD
         },
+        papel: {
+          id: 'papel_enigma_1',
+          x: 470,
+          y: 460,
+          largura: 30,
+          altura: 25,
+          texto: 'Dica Verde',
+        },
         puzzle: {
           portaFinal: { x: 600, y: 215, largura: 65, altura: 10 },
           botoes: [
-            // Botões do chão
-            { id: 'btn_chao_1', x: 534, y: 519, largura: 25, altura: 15 },
-            { id: 'btn_chao_2', x: 705, y: 519, largura: 25, altura: 15 },
-            { id: 'btn_chao_3', x: 1045, y: 300, largura: 25, altura: 15 },
-            { id: 'btn_chao_4', x: 1115, y: 300, largura: 25, altura: 15 },
-            // Botões da parede
             { id: 'btn_parede_1', x: 56, y: 246, largura: 24, altura: 12 },
             { id: 'btn_parede_2', x: 132, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_3', x: 166, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_4', x: 201, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_5', x: 234, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_6', x: 269, y: 246, largura: 8, altura: 12 },
-            { id: 'btn_parede_7', x: 1080, y: 248, largura: 24, altura: 12 },
+            { id: 'btn_parede_7', x: 1012, y: 248, largura: 24, altura: 12 },
+            { id: 'btn_parede_8', x: 1080, y: 248, largura: 24, altura: 12 },
+            { id: 'btn_parede_9', x: 1149, y: 248, largura: 24, altura: 12 },
           ],
-          sequencia: ['btn_chao_1', 'btn_chao_3', 'btn_parede_1', 'btn_parede_4', 'btn_parede_2', 'btn_chao_2', 'btn_parede_3', 'btn_parede_6', 'btn_chao_4', 'btn_parede_5', 'btn_parede_7'],
+          sequencia: ['btn_parede_6'],
         }
       }
     },
@@ -102,6 +111,7 @@ export function useColisoes() {
         saida: { x: 620, y: 700, largura: 85, altura: 10 },
         artefato: {
           id: 'anel_vermelho',
+          type: 'artefato',
           x: 650,
           y: 140,
           largura: 25,
@@ -114,6 +124,7 @@ export function useColisoes() {
           y: 400,
           largura: 40,
           altura: 25,
+          texto: 'Onde a luz toca primeiro, o ciclo começa. A vida nasce, depois observa o céu, antes de descansar seu brilho sob a noite eterna.',
         },
         puzzle: {
           portaFinal: { x: 0, y: 0, largura: 65, altura: 10 },
@@ -178,6 +189,7 @@ export function useColisoes() {
         saida: { x: 686, y: 680, largura: 63, altura: 10 },
         artefato: {
           id: 'anel_azul',
+          type: 'artefato',
           x: 706,
           y: 73,
           largura: 27,
@@ -192,7 +204,8 @@ export function useColisoes() {
     id: 'aviao', // Adiciona um ID para o avião
     x: 290, y: 603, largura: 85, altura: 70,
     porta: { x: 290, y: 603, largura: 8, altura: 70 },
-    spawnPoint: { x: 860, y: 570 } // Ponto de spawn na base
+    spawnPoint: { x: 860, y: 570 }, // Ponto de spawn na base
+    spawnPointPredio: { x: 640, y: 600 } // Ponto de spawn no prédio
   };
 
   const mapaBase = {
@@ -208,6 +221,35 @@ export function useColisoes() {
       { x: 900, y: 563, largura: 115, altura: 105 },    // Avião
     ],
     saida: { x: 900, y: 590, largura: 10, altura: 50 }
+  };
+
+  const mapaPredio = {
+    id: 'predio',
+    interiorImageSrc: predioSrc,
+    porta: { x: 510, y: 460, largura: 45, altura: 10 },
+    aviaoSaida: { x: 60, y: 540, largura: 10, altura: 145 },
+    paredes: [
+      { x: 325, y: 45, largura: 415, altura: 425 },
+      { x: 60, y: 540, largura: 165, altura: 145 }, // Avião
+    ],
+    interior: {
+      interiorImageSrc: predioInteriorSrc,
+      interiorColetadoImageSrc: predioColetadoSrc,
+      paredes: [
+        { x: 255, y: 70, largura: 20, altura: 575 },
+        { x: 970, y: 70, largura: 25, altura: 575 },
+        { x: 255, y: 70, largura: 740, altura: 80 },
+        { x: 255, y: 535, largura: 300, altura: 80 },
+        { x: 695, y: 535, largura: 300, altura: 80 },
+      ],
+      saida: { x: 555, y: 630, largura: 137, altura: 10 },
+      artefato: {
+        id: 'artefato',
+        type: 'artefato',
+        x: 600, y: 280, largura: 65, altura: 45,
+        hudImageSrc: artefatoSrc
+      }
+    }
   };
 
   function retangulosColidem(r1, r2) {
@@ -241,6 +283,7 @@ export function useColisoes() {
     templos,
     aviao,
     mapaBase,
+    mapaPredio,
     retangulosColidem,
     verificaColisaoTemplos,
     verificaColisaoAviao,

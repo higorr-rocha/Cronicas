@@ -24,9 +24,15 @@ export function useInventario() {
     return inventario.value.some(i => i.id === itemId);
   }
 
+  function limparInventario() {
+    inventario.value = [];
+    console.log("Inventário limpo.");
+  }
+
   return {
     inventario,
     adicionarItem,
-    temItem
+    temItem,
+    limparInventario
   };
 }
