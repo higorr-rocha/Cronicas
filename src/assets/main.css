@@ -3,7 +3,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: hidden; /* Mantém o jogo sem barras de rolagem */
   width: 100%;
   height: 100%;
 }
@@ -11,7 +11,12 @@ html, body {
 #app {
   width: 100%;
   height: 100%;
+  font-weight: normal;
 }
+
+/* O bloco @media (min-width: 1024px) foi removido daqui.
+  O restante do CSS original não é necessário para o layout do jogo.
+*/
 
 a,
 .green {
@@ -26,18 +31,3 @@ a,
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 }
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-  
-}
-
