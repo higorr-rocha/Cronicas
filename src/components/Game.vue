@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Howl } from 'howler';
 import mapSrc from '../assets/Mapas/templos.png';
 import playerSrc from '../assets/player_spritesheet.png';
@@ -52,8 +52,8 @@ const intervaloPassos = 350; // milissegundos entre sons
 // Sistemas
 const { templos, aviao, mapaBase, retangulosColidem, verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta } = useColisoes();
 const { player, keys, moverJogador } = usePlayer();
-const currentMap = ref('base');
-const { puzzleStatus, ativarBotao, podeAtivar } = usePuzzle();
+const currentMap = ref('templo_vermelho');
+const { puzzleStatus, ativarBotao, podeAtivar, iniciarPuzzle } = usePuzzle();
 const { inventario, adicionarItem, temItem } = useInventario();
 const baseMapImage = new Image();
 baseMapImage.src = mapaBase.interiorImageSrc;
@@ -127,6 +127,17 @@ function rectFromPlayer(newX, newY) {
     altura: player.value.hitbox.height,
   };
 }
+
+// Função de verificação do puzzle
+watch(currentMap, (novoMapaId) => {
+  const templo = templos.find(t => t.id === novoMapaId);
+  
+  if (templo && templo.interior?.puzzle?.sequencia) {
+    iniciarPuzzle(templo.interior.puzzle.sequencia);
+  } else {
+    iniciarPuzzle([]); // Reseta se o mapa não tiver um puzzle de sequência
+  }
+});
 
 useTeclado(keys, handleKeyPress);
 
@@ -315,16 +326,16 @@ function draw() {
         // Desenha a porta final do puzzle em vermelho
         context.strokeStyle = 'red';
         context.strokeRect(portaFinal.x, portaFinal.y, portaFinal.largura, portaFinal.altura);
-
-        if (artefato && !temItem(artefato.id)) {
-          context.strokeStyle = 'magenta';
-          context.strokeRect(artefato.x, artefato.y, artefato.largura, artefato.altura);
-        }
       }
       const { artefato } = temploAtual.interior;
       if (artefato && !temItem(artefato.id)) {
         context.strokeStyle = 'magenta';
         context.strokeRect(artefato.x, artefato.y, artefato.largura, artefato.altura);
+      }
+      const { papel } = temploAtual.interior;
+      if (papel) {
+        context.strokeStyle = 'orange';
+        context.strokeRect(papel.x, papel.y, papel.largura, papel.altura);
       }
     } else if (currentMap.value === 'base') {
         context.strokeStyle = 'green';
