@@ -23,6 +23,7 @@ import playerSrc from '../assets/player_spritesheet.png';
 import passosAudio from '../assets/Sons/passos.ogg';
 import BotaoCorretoAudio from '../assets/Sons/AcertarBotao.ogg';
 import PegarAnelAudio from '../assets/Sons/PegarAnel.ogg';
+import PegarArtefatoAudio from '../assets/Sons/PegarArtefato.ogg';
 import { useColisoes } from '../composables/useColisoes.js';
 import { usePlayer } from '../composables/usePlayer.js';
 import { useTeclado } from '../composables/useTeclado.js';
@@ -57,6 +58,11 @@ const somBotaoCorreto = new Howl({
 
 const somPegarAnel = new Howl({
   src: [PegarAnelAudio],
+  volume: 0.7 // Pode ajustar o volume como preferir
+});
+
+const somPegarArtefato = new Howl({
+  src: [PegarArtefatoAudio],
   volume: 0.9 // Pode ajustar o volume como preferir
 });
 
@@ -84,6 +90,9 @@ const { inventario, adicionarItem, temItem, limparInventario } = useInventario({
       somPegarAnel.play();
     }
     // Adicionar som para a coleta do Artefato Final
+    if (item.id === 'artefato') {
+      somPegarArtefato.play();
+    }
   }
 });
 

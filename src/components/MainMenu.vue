@@ -31,14 +31,13 @@ function handleOpenSettings() {
 .menu-container {
   width: 100%;
   height: 100%;
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   display: flex;
   justify-content: center;
-  align-items: center; /* MUDOU de 'flex-end' para 'center' */
-  /* REMOVIDO o padding-bottom que não é mais necessário */
-}
+  align-items: center;
+  padding-top: 130px;}
 
 /* --- ALTERAÇÃO AQUI --- */
 .buttons-wrapper {
@@ -50,7 +49,7 @@ function handleOpenSettings() {
 /* O estilo do botão em si não muda */
 .menu-button {
   /* Tamanho e Fonte */
-  padding: 20px 40px;
+  padding: 20px 30px;
   font-size: 1.8rem;
   font-family: 'Courier New', Courier, monospace;
   color: #502d16;
