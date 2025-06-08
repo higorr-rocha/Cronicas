@@ -66,7 +66,8 @@ export function useColisoes() {
             { id: 'btn_parede_5', x: 234, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_6', x: 269, y: 246, largura: 8, altura: 12 },
             { id: 'btn_parede_7', x: 1080, y: 248, largura: 24, altura: 12 },
-          ]
+          ],
+          sequencia: ['btn_chao_1', 'btn_chao_3', 'btn_parede_1', 'btn_parede_4', 'btn_parede_2', 'btn_chao_2', 'btn_parede_3', 'btn_parede_6', 'btn_chao_4', 'btn_parede_5', 'btn_parede_7'],
         }
       }
     },
@@ -75,6 +76,8 @@ export function useColisoes() {
       x: 535, y: 18, largura: 243, altura: 320,
       porta: { x: 535, y: 330, largura: 243, altura: 10 },
       interiorImageSrc: temploVermelhoSrc,
+      interiorAbertoImageSrc: temploVermelhoAbertoSrc,
+      interiorColetadoImageSrc: temploVermelhoColetadoSrc,
       spawnPoint: { x: 620, y: 570 },
       interior: {
         paredes: [
@@ -122,6 +125,7 @@ export function useColisoes() {
             { id: 'btn_arvore', x: 1184, y: 435, largura: 25, altura: 20 },
             { id: 'btn_lua', x: 1184, y: 374, largura: 25, altura: 20 },
           ],
+          sequencia: ['btn_sol', 'btn_arvore', 'btn_janela', 'btn_estrela', 'btn_lua'],
         }
       }
     },
