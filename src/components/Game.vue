@@ -52,7 +52,7 @@ const intervaloPassos = 350; // milissegundos entre sons
 // Sistemas
 const { templos, aviao, mapaBase, retangulosColidem, verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta } = useColisoes();
 const { player, keys, moverJogador } = usePlayer();
-const currentMap = ref('templo_vermelho');
+const currentMap = ref('base');
 const { puzzleStatus, ativarBotao, podeAtivar, iniciarPuzzle } = usePuzzle();
 const { inventario, adicionarItem, temItem } = useInventario();
 const baseMapImage = new Image();
