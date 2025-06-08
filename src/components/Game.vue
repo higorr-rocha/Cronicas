@@ -6,15 +6,23 @@
       :width="gameWidth"
       :height="gameHeight"
     ></canvas>
+
+    <Dialog 
+      :visible="dialog.visible" 
+      :message="dialog.message" 
+    ></Dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import Dialog from './Dialog.vue';
 import { Howl } from 'howler';
 import mapSrc from '../assets/Mapas/templos.png';
 import playerSrc from '../assets/player_spritesheet.png';
 import passosAudio from '../assets/Sons/passos.ogg';
+import BotaoCorretoAudio from '../assets/Sons/AcertarBotao.ogg';
+import PegarAnelAudio from '../assets/Sons/PegarAnel.ogg';
 import { useColisoes } from '../composables/useColisoes.js';
 import { usePlayer } from '../composables/usePlayer.js';
 import { useTeclado } from '../composables/useTeclado.js';
@@ -41,20 +49,44 @@ const hudImages = {};
 const playerImage = new Image();
 playerImage.src = playerSrc;
 
-// Som de passos
+// Sons
+const somBotaoCorreto = new Howl({
+  src: [BotaoCorretoAudio],
+  volume: 0.8
+});
+
+const somPegarAnel = new Howl({
+  src: [PegarAnelAudio],
+  volume: 0.9 // Pode ajustar o volume como preferir
+});
+
 const somPassos = new Howl({
   src: [passosAudio],
   volume: 0.4
 });
+
 let ultimoPasso = 0;
-const intervaloPassos = 350; // milissegundos entre sons
+const intervaloPassos = 380; // milissegundos entre sons
 
 // Sistemas
 const { templos, aviao, mapaBase, mapaPredio, retangulosColidem, verificaColisaoTemplos, verificaColisaoAviao, verificaColisaoPorta } = useColisoes();
 const { player, keys, moverJogador } = usePlayer();
 const currentMap = ref('base');
-const { puzzleStatus, ativarBotao, podeAtivar, iniciarPuzzle } = usePuzzle();
-const { inventario, adicionarItem, temItem, limparInventario } = useInventario();
+
+const { puzzleStatus, ativarBotao, podeAtivar, iniciarPuzzle } = usePuzzle({
+  onBotaoCorreto: () => { somBotaoCorreto.play(); },
+});
+
+const { inventario, adicionarItem, temItem, limparInventario } = useInventario({
+  onItemAdicionado: (item) => {
+    // Verifica se o ID do item adicionado começa com 'anel_'
+    if (item.id?.startsWith('anel_')) {
+      somPegarAnel.play();
+    }
+    // Adicionar som para a coleta do Artefato Final
+  }
+});
+
 const baseMapImage = new Image();
 baseMapImage.src = mapaBase.interiorImageSrc;
 const predioMapImage = new Image();
@@ -522,6 +554,7 @@ defineExpose({ dialog });
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .game-canvas {
