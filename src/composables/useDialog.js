@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 
 // 1. Remova 'temploAtual' da lista de parâmetros
-export function useDialog(player, currentMap, aviao, mapaBase, mapaPredio, ativarBotao, adicionarItem, limparInventario) {
+export function useDialog(player, currentMap, aviao, mapaBase, mapaPredio, ativarBotao, adicionarItem, limparInventario, temItem, finalizarJogo) {
   const dialog = ref({
     visible: false,
     message: '',
