@@ -79,7 +79,7 @@ Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
             { id: 'btn_parede_8', x: 1080, y: 248, largura: 24, altura: 12 },
             { id: 'btn_parede_9', x: 1149, y: 248, largura: 24, altura: 12 },
           ],
-          sequencia: ['btn_parede_6'],
+          sequencia: ['btn_parede_1', 'btn_parede_3', 'btn_parede_4', 'btn_parede_2', 'btn_parede_9'],
         }
       }
     },
