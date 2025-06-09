@@ -1,5 +1,5 @@
 
-# Crônicas do Tempo Perdido  
+# Lyra e os Segredos do Khronóvoros
 
 Jogo web de aventura e exploração em pixel art, desenvolvido por alunos da graduação em Engenharia de Software como parte da avaliação bimestral da disciplina de Front-End.  
 

@@ -66,10 +66,15 @@ export function useDialog(player, currentMap, aviao, mapaBase, mapaPredio, ativa
         player.value.y = 550;
 
       } else if (alvo && alvo.id === 'saida_predio_interior') {
-        currentMap.value = 'predio';
-        player.value.x = mapaPredio.porta.x + (mapaPredio.porta.largura / 2); // Sai em frente à porta
-        player.value.y = mapaPredio.porta.y + 20;
-      
+        // Se o jogador tiver o artefato final, o jogo acaba
+        if (temItem('artefato')) {
+          finalizarJogo();
+        } else {
+          // Se não, ele apenas sai para a área externa do prédio
+          currentMap.value = 'predio';
+          player.value.x = mapaPredio.porta.x + (mapaPredio.porta.largura / 2);
+          player.value.y = mapaPredio.porta.y + 20;
+        }
       } else if (alvo && alvo.id?.startsWith('papel_')) {
         return; 
       

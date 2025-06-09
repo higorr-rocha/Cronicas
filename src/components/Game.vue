@@ -96,11 +96,12 @@ const { inventario, adicionarItem, temItem, limparInventario } = useInventario({
   }
 });
 
+const emit = defineEmits(['end-game']);
 const baseMapImage = new Image();
 baseMapImage.src = mapaBase.interiorImageSrc;
 const predioMapImage = new Image();
 predioMapImage.src = mapaPredio.interiorImageSrc;
-const { dialog, abrirDialogo, processarTecla: processarTeclaDialogo } = useDialog(player, currentMap, aviao, mapaBase, mapaPredio, ativarBotao, adicionarItem, limparInventario);
+const { dialog, abrirDialogo, processarTecla: processarTeclaDialogo } = useDialog(player, currentMap, aviao, mapaBase, mapaPredio, ativarBotao, adicionarItem, limparInventario, temItem, finalizarJogo);
 let context;
 let animationFrameId = null;
 
@@ -181,6 +182,12 @@ watch(currentMap, (novoMapaId) => {
     iniciarPuzzle([]); // Reseta se o mapa não tiver um puzzle de sequência
   }
 });
+
+// Função de finalização do jogo
+function finalizarJogo() {
+  emit('end-game');
+  // cancelAnimationFrame(animationFrameId);
+}
 
 useTeclado(keys, handleKeyPress);
 
