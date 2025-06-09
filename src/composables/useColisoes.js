@@ -65,6 +65,7 @@ export function useColisoes() {
 Antes do próximo passo, pense no meio entre 1 e 3. E finalize com o maior número possível no altar.      
 
 Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
+
         },
         puzzle: {
           portaFinal: { x: 600, y: 215, largura: 65, altura: 10 },
@@ -80,6 +81,7 @@ Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
             { id: 'btn_parede_9', x: 1149, y: 248, largura: 24, altura: 12 },
           ],
           sequencia: ['btn_parede_1', 'btn_parede_3', 'btn_parede_4', 'btn_parede_2', 'btn_parede_9'],
+
         }
       }
     },
