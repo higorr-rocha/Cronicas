@@ -61,7 +61,11 @@ export function useColisoes() {
           y: 460,
           largura: 30,
           altura: 25,
-          texto: 'Dica Verde',
+          texto:  `O primeiro a chegar é o menor de todos. Depois, siga o que está entre o primeiro e o quarto. Va até o valor de letras da palavra [ seis ]. 
+Antes do próximo passo, pense no meio entre 1 e 3. E finalize com o maior número possível no altar.      
+
+Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
+
         },
         puzzle: {
           portaFinal: { x: 600, y: 215, largura: 65, altura: 10 },
@@ -76,7 +80,8 @@ export function useColisoes() {
             { id: 'btn_parede_8', x: 1080, y: 248, largura: 24, altura: 12 },
             { id: 'btn_parede_9', x: 1149, y: 248, largura: 24, altura: 12 },
           ],
-          sequencia: ['btn_parede_6'],
+          sequencia: ['btn_parede_1', 'btn_parede_3', 'btn_parede_4', 'btn_parede_2', 'btn_parede_9'],
+
         }
       }
     },
