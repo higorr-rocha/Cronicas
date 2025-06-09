@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 
 // 1. Remova 'temploAtual' da lista de parâmetros
-export function useDialog(player, currentMap, aviao, ativarBotao, adicionarItem) {
+export function useDialog(player, currentMap, aviao, mapaBase, mapaPredio, ativarBotao, adicionarItem, limparInventario) {
   const dialog = ref({
     visible: false,
     message: '',
@@ -27,6 +27,9 @@ export function useDialog(player, currentMap, aviao, ativarBotao, adicionarItem)
     if (e.key.toLowerCase() === 'e') {
       const alvo = dialog.value.currentTemplo;
 
+      // --- ORDEM DE VERIFICAÇÃO CORRIGIDA ---
+
+      // 1. Primeiro, todos os casos que comparam com uma STRING ou um OBJETO ESPECÍFICO
       if (alvo && alvo.id === 'saida') {
         const temploDeOrigem = alvo.origem;
         currentMap.value = 'exterior';
@@ -46,9 +49,37 @@ export function useDialog(player, currentMap, aviao, ativarBotao, adicionarItem)
         player.value.y = aviao.y + (aviao.altura / 2);
         player.value.direction = 3;
 
-      } else if (alvo && alvo.id?.startsWith('anel_')) {
-        adicionarItem(alvo);
+      // 2. Agora, os casos que usam .startsWith() ou outras propriedades de ID
+      } else if (alvo && alvo.id === 'ir_predio') {
+        currentMap.value = 'predio';
+        player.value.x = aviao.spawnPointPredio.x;
+        player.value.y = aviao.spawnPointPredio.y;
+
+      } else if (alvo && alvo.id === 'aviao_predio_saida') {
+        currentMap.value = 'base';
+        player.value.x = mapaBase.saida.x + 115; // Posição segura na base
+        player.value.y = mapaBase.saida.y - 25;
+
+      } else if (alvo && alvo.id === 'predio') {
+        currentMap.value = 'predio_interior';
+        player.value.x = 640; // Ponto de spawn no interior do prédio
+        player.value.y = 550;
+
+      } else if (alvo && alvo.id === 'saida_predio_interior') {
+        currentMap.value = 'predio';
+        player.value.x = mapaPredio.porta.x + (mapaPredio.porta.largura / 2); // Sai em frente à porta
+        player.value.y = mapaPredio.porta.y + 20;
       
+      } else if (alvo && alvo.id?.startsWith('papel_')) {
+        return; 
+      
+      } else if (alvo && alvo.type === 'artefato') {
+        // Se for o artefato final, limpa o inventário primeiro
+        if (alvo.id === 'artefato') {
+          limparInventario();
+        }
+        adicionarItem(alvo);
+
       } else if (alvo && alvo.id?.startsWith('btn_')) {
         ativarBotao(alvo.id);
         
@@ -58,7 +89,7 @@ export function useDialog(player, currentMap, aviao, ativarBotao, adicionarItem)
         player.value.y = alvo.spawnPoint.y;
 
       } else if (alvo && alvo.id) { 
-        // Lógica de entrada nos templos (não modifica mais temploAtual)
+        // Lógica de entrada nos templos
         currentMap.value = alvo.id;
         player.value.x = alvo.spawnPoint.x;
         player.value.y = alvo.spawnPoint.y;

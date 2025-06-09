@@ -15,7 +15,7 @@ defineProps({
 .dialog-box {
   position: absolute;
   bottom: 200px;
-  left: 100%;
+  left: 50%;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.85);
   color: white;

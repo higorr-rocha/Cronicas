@@ -14,7 +14,7 @@ export function usePlayer() {
       width: 20,
       height: 50,
     },
-    speed: 2,
+    speed: 2.5,
     frameIndex: 0,
     frameCount: 4,
     frameTick: 0,

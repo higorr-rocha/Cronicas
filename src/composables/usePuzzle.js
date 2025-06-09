@@ -1,18 +1,20 @@
 import { ref } from 'vue';
 
-export function usePuzzle() {
+// A função agora espera um objeto com 'callbacks' como parâmetro
+export function usePuzzle({ onBotaoCorreto, onPuzzleResolvido, onBotaoErrado }) {
   const sequenciaCorreta = ref([]);
   const sequenciaAtual = ref([]);
   const puzzleStatus = ref('incompleto');
 
   function iniciarPuzzle(novaSequencia = []) {
-    console.log("Iniciando puzzle com a sequência:", novaSequencia);
     sequenciaCorreta.value = novaSequencia;
     sequenciaAtual.value = [];
     puzzleStatus.value = 'incompleto';
   }
 
   function resetarTentativa() {
+    // Chama o callback de erro, se ele foi fornecido
+    if (onBotaoErrado) onBotaoErrado(); 
     console.log("Ordem errada! Resetando a tentativa.");
     sequenciaAtual.value = [];
   }
@@ -30,9 +32,16 @@ export function usePuzzle() {
 
     if (!estaCorreto) {
       resetarTentativa();
-    } else if (sequenciaAtual.value.length === sequenciaCorreta.value.length) {
-      console.log("PUZZLE RESOLVIDO!");
-      puzzleStatus.value = 'resolvido';
+    } else {
+      // Se estiver correto, chama o callback de acerto
+      if (onBotaoCorreto) onBotaoCorreto();
+
+      if (sequenciaAtual.value.length === sequenciaCorreta.value.length) {
+        // Se completou a sequência, chama o callback de puzzle resolvido
+        if (onPuzzleResolvido) onPuzzleResolvido();
+        console.log("PUZZLE RESOLVIDO!");
+        puzzleStatus.value = 'resolvido';
+      }
     }
   }
   
