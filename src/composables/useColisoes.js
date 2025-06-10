@@ -1,3 +1,6 @@
+// Importa todas as imagens necessárias para os mapas e itens.
+// Manter as importações aqui permite que os dados dos objetos abaixo
+// já tenham a referência correta para a imagem que devem usar.
 import temploVerdeSrc from '../assets/Mapas/templo_verde.png';
 import temploVerdeAbertoSrc from '../assets/Mapas/templo_verde_aberto.png';
 import temploVerdeColetadoSrc from '../assets/Mapas/templo_verde_coletado.png';
@@ -15,6 +18,10 @@ import predioInteriorSrc from '../assets/Mapas/predio_interior.png';
 import predioColetadoSrc from '../assets/Mapas/predio_coletado.png';
 import artefatoSrc from '../assets/Itens/artefato.png';
 
+/**
+ * Composable que centraliza todos os dados de colisão e objetos do jogo.
+ * Funciona como um banco de dados para os mapas e suas propriedades.
+ */
 export function useColisoes() {
   const templos = [
     {
@@ -61,7 +68,7 @@ export function useColisoes() {
           y: 460,
           largura: 30,
           altura: 25,
-          texto: `O primeiro a chegar é o menor de todos. Depois, siga o que está entre o primeiro e o quarto. Va até o valor de letras da palavra [ seis ]. 
+          texto: `O primeiro a chegar é o menor de todos. Depois, siga o que está entre o segundo e o quarto. Va até o valor de letras da palavra [ seis ]. 
 Antes do próximo passo, pense no meio entre 1 e 3. E finalize com o maior número possível no altar.      
 
 Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
@@ -182,7 +189,7 @@ Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
           { x: 782, y: 245, largura: 30, altura: 115 },
           { x: 782, y: 420, largura: 30, altura: 180 },
           { x: 782, y: 120, largura: 30, altura: 65 },
-          { x: 1095, y: 235, largura: 30, altura: 130 },
+          { x: 1100, y: 235, largura: 30, altura: 120 },
           { x: 938, y: 360, largura: 30, altura: 65 },
           { x: 938, y: 483, largura: 30, altura: 65 },
           { x: 938, y: 180, largura: 30, altura: 65 },
@@ -255,7 +262,15 @@ Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
     }
   };
 
+  /**
+   * Função matemática pura para verificar se dois retângulos se sobrepõem.
+   * A base para toda a detecção de colisão do jogo.
+   * @param {object} r1 - O primeiro retângulo {x, y, largura, altura}.
+   * @param {object} r2 - O segundo retângulo {x, y, largura, altura}.
+   * @returns {boolean} - Verdadeiro se houver colisão, falso caso contrário.
+   */
   function retangulosColidem(r1, r2) {
+    if (!r1 || !r2) return false; // Adiciona uma verificação de segurança.
     return !(
       r1.x + r1.largura < r2.x ||
       r1.x > r2.x + r2.largura ||
@@ -264,24 +279,37 @@ Toque a ordem da criação para adquirir o que foi predestinado a ti.`,
     );
   }
 
+  /**
+   * Verifica se um dado retângulo colide com a estrutura principal de qualquer um dos templos.
+   * @param {object} retangulo - A hitbox do jogador.
+   */
   function verificaColisaoTemplos(retangulo) {
     return templos.some(templo => retangulosColidem(retangulo, templo));
   }
 
+  /**
+   * Verifica se um dado retângulo colide com a estrutura principal do avião.
+   * @param {object} retangulo - A hitbox do jogador.
+   */
   function verificaColisaoAviao(retangulo) {
     return retangulosColidem(retangulo, aviao);
   }
 
+  /**
+   * Verifica se um dado retângulo colide com a 'porta' (área de interação) de um templo ou do avião.
+   * @param {object} retangulo - A hitbox do jogador.
+   * @returns {object|null} - O objeto do templo/avião se houver colisão, ou nulo.
+   */
   function verificaColisaoPorta(retangulo) {
     const temploComPorta = templos.find(templo => retangulosColidem(retangulo, templo.porta));
     if (temploComPorta) return temploComPorta;
     
-    // Agora verifica a porta do avião
     if (retangulosColidem(retangulo, aviao.porta)) return aviao;
 
     return null;
   }
 
+  // Expõe todos os dados e funções para que outros arquivos possam usá-los.
   return {
     templos,
     aviao,

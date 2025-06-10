@@ -1,6 +1,11 @@
 <script setup>
+// Define o evento que este componente pode emitir para seu pai (App.vue).
 const emit = defineEmits(['continueToGame']);
 
+/**
+ * Função chamada quando o botão "Continuar" é clicado.
+ * Emite o evento 'continueToGame' para o App.vue.
+ */
 function handleContinue() {
   emit('continueToGame');
 }
@@ -26,6 +31,7 @@ function handleContinue() {
 </template>
 
 <style scoped>
+/* Estiliza o contêiner da tela de história para preencher a tela e centralizar o conteúdo. */
 .story-container {
   width: 100%;
   height: 100%;
@@ -37,6 +43,7 @@ function handleContinue() {
   font-family: 'Courier New', Courier, monospace;
 }
 
+/* A "caixa" que contém o texto e o botão, para dar um visual mais organizado. */
 .story-content {
   text-align: center;
   max-width: 800px;
@@ -45,12 +52,14 @@ function handleContinue() {
   background-color: #1a1a1a;
 }
 
+/* Estilo do parágrafo da história. */
 .story-text {
   font-size: 1.2rem;
-  line-height: 1.6;
-  margin-bottom: 40px;
+  line-height: 1.6; /* Aumenta o espaçamento entre as linhas para melhor legibilidade. */
+  margin-bottom: 40px; /* Adiciona um espaço entre o texto e o botão. */
 }
 
+/* Estilo do botão "Continuar". */
 .continue-button {
   padding: 15px 30px;
   font-size: 1.5rem;
@@ -61,6 +70,7 @@ function handleContinue() {
   transition: background-color 0.3s;
 }
 
+/* Efeito simples ao passar o mouse. */
 .continue-button:hover {
   background-color: #444;
 }
